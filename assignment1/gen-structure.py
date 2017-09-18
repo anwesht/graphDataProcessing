@@ -8,10 +8,32 @@ import snap
 RANDOM_SIZE_LIST = [10, 100, 1000]
 
 
+# def plot_deg_distribution(g):
+#
+
+
+def generate_graph_nx(num_nodes):
+    """
+    Generates a complete graph and removes nodes that are not divisible by 2 and 3.
+    Writes the corresponding edgelist to a file: random5000by6.txt
+    :return: graph
+    """
+    gen_graph = nx.complete_graph(num_nodes)
+
+    for n in range(gen_graph.number_of_nodes()):
+        if not (n % 2 == 0 and n % 3 == 0):
+            gen_graph.remove_node(n)
+
+    nx.write_edgelist(gen_graph, "random5000by6.txt", data=False)
+
+
 def main(argv):
     if len(argv) != 1:
         print "usage: python gen-structure.py <path/to/edgelist>"
         sys.exit(0)
+
+    # Q0. Uncomment to generate random5000by6.txt edge list.
+    # generate_graph_nx(5000)
 
     graph_file_path = argv[0]
     graph_file_name = graph_file_path.split('/')[-1]
@@ -31,14 +53,15 @@ def main(argv):
     print "Number of nodes with degree = 1 in {}: {}".format(graph_file_name, len(nodes_with_degree_1))
 
     # Q2.b. find max degree.
-    max_degree, nodes_with_max_degree = reduce(
-        lambda (md, max_ids), key:
-            (md, max_ids) if degree_dict[key] < md
-            else (md, max_ids.append(key)) if degree_dict[key] == md
-            else (degree_dict[key], [key]),
-        degree_dict,
-        (0, list())
-    )
+    max_degree = 0
+    nodes_with_max_degree = []
+
+    for k, v in degree_dict.items():
+        if v > max_degree:
+            max_degree = v
+            nodes_with_max_degree = [k]
+        elif v == max_degree:
+            nodes_with_max_degree.append(k)
 
     print "Max Degree is {}".format(max_degree)
     # print "Max Degree is {}".format(sorted(degree_dict.values())[-1])  # sanity check
@@ -58,28 +81,12 @@ def main(argv):
 
         print "The average degree of {}'s 2-hop neighborhood is: {}".format(node, avg_degree_n_2/num_of_n_2)
 
-    # todo Q2.d. plot the degree distribution
-
-    # Q3.a. Approximate full diameter (maximum shortest path length)
-    # full_diameters = []
-    # for max_size in RANDOM_SIZE_LIST:
-    #     full_diam = 0
-    #     for _ in range(0, max_size, 2):
-    #         n1 = choice(g_nx.nodes())
-    #         n2 = choice(g_nx.nodes())
-    #         shortest_path_length = nx.shortest_path_length(g_nx, n1, n2)
-    #         if full_diam < shortest_path_length:
-    #             full_diam = shortest_path_length
-    #
-    #     full_diameters.append(full_diam)
-    #     print "Approx. diameter in {} with sampling {} nodes: {}".format(graph_file_name,
-    #                                                                      max_size, full_diam)
-    #
-    # print "Approx. diameter in {} (mean and variance): {}, {}.".format(graph_file_name,
-    #                                                                    numpy.mean(full_diameters),
-    #                                                                    numpy.var(full_diameters))
-
     g_snap = snap.LoadEdgeList(snap.PUNGraph, graph_file_path)
+
+    # Q2.d Plot the degree distribution
+    snap.PlotOutDegDistr(g_snap, graph_file_name+"-degree_distribution", "Plot of the degree distribution")
+    print "Degree distribution of {} is in: {}".format(graph_file_name,
+                                                       "outDeg."+graph_file_name+"-degree_distribution.png")
 
     # Q3.a. Approximate full diameter (maximum shortest path length)
     full_diameters = []
@@ -106,14 +113,18 @@ def main(argv):
                                                                                  numpy.mean(effective_diameters),
                                                                                  numpy.var(effective_diameters))
 
-    # todo Q3.c. Plot distribution of shortest path lengths
+    # Q3.c. Plot distribution of shortest path lengths
+    snap.PlotShortPathDistr(g_snap, graph_file_name+"-shortest_path_distribution",
+                            "Plot of the distribution of shortest path lengths")
+    print "Shortest path distribution of {} is in: {}".format(graph_file_name,
+                                                              "diam."+graph_file_name+"-shortest_path_distribution.png")
 
     # Q4.a. Fraction of nodes in the largest connected component.
     num_nodes_largest_comp_gnx = 0
     connected_components_gnx = sorted(nx.connected_components(g_nx), key=len, reverse=True)
 
     if len(connected_components_gnx) > 0:
-        num_nodes_largest_comp = len(connected_components_gnx[0])
+        num_nodes_largest_comp_gnx = len(connected_components_gnx[0])
 
     frac_largest_comp_gnx = num_nodes_largest_comp_gnx/g_nx.number_of_nodes()
 
@@ -133,7 +144,61 @@ def main(argv):
                                                                                            frac_largest_comp_gnxc)
 
     # todo Q4.c. Plot of the distribution of sizes of connected components.
+    comp_size_freq = {}
+    for conn in connected_components_gnx:
+        comp_size = len(conn)
+        # print comp_size
+        if comp_size not in comp_size_freq:
+            comp_size_freq[comp_size] = 0
 
+        comp_size_freq[comp_size] += 1
+
+    comp_size_freq = sorted(comp_size_freq.items())
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    x_axis_vals = [k for (k, _) in comp_size_freq]
+    y_axis_vals = [v for (_, v) in comp_size_freq]
+    ax.plot(x_axis_vals, y_axis_vals, 'bo')
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    plt.title("Plot of the distribution of sizes of connected components \n for {}".format(graph_file_name))
+    plt.xlabel("Component Size")
+    plt.ylabel("Frequency")
+
+    plt.draw()
+    plt.show()
+
+
+    # g_snap_c = snap.TUNGraph.New()
+    #
+    # for n in g_snap.Nodes():
+    #     g_snap_c.AddNode(int(n.GetId()))
+    #
+    # for s, d in g_nx_c.edges():
+    #     # print s + ", " + d
+    #     g_snap_c.AddEdge(int(s), int(d))
+    #
+    # snap.PlotSccDistr(g_snap, graph_file_name+"-scc_distribution",
+    #                   "Plot of the distribution of sizes of connected components")
+    # print "Component size distribution of {} is in: ".format(graph_file_name,
+    #                                                          graph_file_name + "-scc_distribution")
+
+
+    # snap.PlotSccDistr(g_snap_c, graph_file_name + "_complement-size_of_connected_comps_distribution",
+    #                   "Plot of the distribution of sizes of connected components")
+    # print "Component size distribution of the complement of {} is in: {}".format(
+    #     graph_file_name,
+    #     graph_file_name + "_complement-size_of_connected_comps_distribution")
+
+
+
+
+    # R.add_edges_from(((n, n2)
+    #                   for n, nbrs in G.adjacency_iter()
+    #                   for n2 in G if n2 not in nbrs
+    #                   if n != n2))
 
     # snap.GenRndGnm(snap.PNGraph, 100, 1000)
 

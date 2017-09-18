@@ -1,0 +1,6 @@
+Run the following command in the folder with the file graphic-check.py with the correct path to degree sequence file:
+
+$ python graphic-check.py <path/to/degree_sequence_file>
+
+# Libraries used:
+- sys

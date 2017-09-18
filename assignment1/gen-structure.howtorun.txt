@@ -1,0 +1,9 @@
+Run the following command in the folder with the file gen-structure.py with correct path to edgelist file:
+
+$ python gen-structure.py <path/to/edgelist>
+
+# Libraries used:
+- sys
+- networkx
+- snap
+- numpy
