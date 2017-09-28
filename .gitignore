@@ -6,7 +6,7 @@ assignment1/.idea
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
-
+.idea/
 # Sensitive or high-churn files:
 .idea/**/dataSources/
 .idea/**/dataSources.ids
@@ -48,3 +48,8 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# ignoring matplotlib output.
+*.pdf
+*.plt
+*.tab
