@@ -18,12 +18,21 @@ def print_fail(deg_seq_file, msg, is_original):
 def havil_hakimi(deg_seq_file, deg_seq, is_first_iter=True):
     """
     Prints if the provided degree sequence is graphical or not. If not, also prints the reason for failure.
+    Tests performed:
+    #1: max degree must be <= n-1
+    #2: sum of degrees must be even
+    #3: at least two nodes must have the same degree (Handshake problem)
+    #4: Havel-Hakimi Theorem.
     :param deg_seq_file: degree sequence file being examined.
     :param deg_seg: deg sequence loaded from the deg_seq_file.
     :param is_original: Flag indicating first iteration of the algorithm.
     :returns void
     """
-    for _ in range(len(deg_seq)):
+    if len(deg_seq) == 1:
+        print " The length of the sequence must be at least 2."
+        return
+
+    for _ in range(len(deg_seq) - 1):
         if deg_seq[0] >= len(deg_seq):
             print_fail(deg_seq_file, "Max degree is greater than the number of nodes", is_first_iter)
             return
@@ -56,8 +65,9 @@ def test_cases():
         [4, 4, 3, 3],               # max degree
         [3, 2, 1, 1],               # sum is odd
         [7, 5, 5, 4, 4, 4, 4, 3],   # degree sequence
-        [3, 3, 3, 1],               # -ve degree
-        [-2, -2]                    # -ve degree
+        [3, 3, 3, 1],               # Havel-Hakimi: -ve degree
+        [-2, -2],                   # -ve degree
+        [1]
     ]
 
     for index, t in enumerate(test_sequences):

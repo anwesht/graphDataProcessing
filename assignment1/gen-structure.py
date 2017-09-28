@@ -8,10 +8,6 @@ import snap
 RANDOM_SIZE_LIST = [10, 100, 1000]
 
 
-# def plot_deg_distribution(g):
-#
-
-
 def generate_graph_nx(num_nodes):
     """
     Generates a complete graph and removes nodes that are not divisible by 2 and 3.
@@ -25,6 +21,93 @@ def generate_graph_nx(num_nodes):
             gen_graph.remove_node(n)
 
     nx.write_edgelist(gen_graph, "random5000by6.txt", data=False)
+
+
+def setup_log_log_plot(ax, x_axis_vals, y_axis_vals):
+    """
+    Sets up the axis values for a log-log plot.
+    :param ax:
+    :param x_axis_vals: list of values for x-axis
+    :param y_axis_vals: list of values for y-axis
+    :return: void
+    """
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    if len(y_axis_vals) == 1:
+        lo = float(y_axis_vals[0]) / 10
+        hi = float(y_axis_vals[0]) * 10
+        ax.set_ylim(ymin=lo, ymax=hi)
+    if len(x_axis_vals) == 1:
+        lo = float(x_axis_vals[0]) / 10
+        hi = float(x_axis_vals[0]) * 10
+        ax.set_xlim(xmin=lo, xmax=hi)
+
+
+def plot_degree_distribution(g, graph_file_name):
+    """
+    Counts the frequency of each degree and plots it in a log-log plot.
+    :param g: graph for which the degree distribution is to be plotted.
+    :param graph_file_name: current edgelist name
+    :return: void
+    """
+    degree_dict = {}
+
+    for n in g.nodes():
+        d = g.degree(n)
+        if d not in degree_dict:
+            degree_dict[d] = 0
+        degree_dict[d] += 1
+
+    degree_dict = sorted(degree_dict.items())
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    x_axis_vals = [k for (k, _) in degree_dict]
+    y_axis_vals = [v for (_, v) in degree_dict]
+
+    setup_log_log_plot(ax, x_axis_vals, y_axis_vals)
+
+    plt.title("Plot of the degree distribution for \n for {}".format(graph_file_name))
+    plt.xlabel("Degree")
+    plt.ylabel("Frequency")
+
+    ax.plot(x_axis_vals, y_axis_vals, '-rx')
+
+    # Uncomment to view plt
+    # plt.show()
+    fig.savefig(graph_file_name + "-degree_distribution.png")
+
+
+def plot_distribution_of_connected_components(connected_components_gnx, graph_file_name):
+    """
+    Counts the frequency of the size of connected components and plots it in a log-log plot using matplotlib
+    :param connected_components_gnx: list of connected components of the graph
+    :param graph_file_name: name of the original graph
+    :return: void
+    """
+    comp_size_freq = {}
+    for conn in connected_components_gnx:
+        comp_size = len(conn)
+        if comp_size not in comp_size_freq:
+            comp_size_freq[comp_size] = 0
+
+        comp_size_freq[comp_size] += 1
+    comp_size_freq = sorted(comp_size_freq.items())
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    x_axis_vals = [k for (k, _) in comp_size_freq]
+    y_axis_vals = [v for (_, v) in comp_size_freq]
+
+    setup_log_log_plot(ax, x_axis_vals, y_axis_vals)
+
+    plt.title("Plot of the distribution of sizes of connected components \n for {}".format(graph_file_name))
+    plt.xlabel("Component Size")
+    plt.ylabel("Frequency")
+
+    ax.plot(x_axis_vals, y_axis_vals, '-bx')
+
+    # Uncomment to view plt
+    # plt.show()
+    fig.savefig(graph_file_name + "-scc_distribution.png")
 
 
 def main(argv):
@@ -64,29 +147,33 @@ def main(argv):
             nodes_with_max_degree.append(k)
 
     print "Max Degree is {}".format(max_degree)
-    # print "Max Degree is {}".format(sorted(degree_dict.values())[-1])  # sanity check
+    # print "Check: Max Degree is {}".format(sorted(degree_dict.values())[-1])  # sanity check
     print "Node id(s) with highest degree in {}: {}".format(graph_file_name,
                                                             ", ".join(str(i) for i in nodes_with_max_degree))
 
-    # Q2.c.
+    # Q2.c. 2-hop Neighbors
     for node in nodes_with_degree_1:
-        neighbors = g_nx.neighbors(node)
-        avg_degree_n_2 = float(0)
-        num_of_n_2 = 0
+        neighbors = g_nx.neighbors(node)  # nodes in 1 hop. Should just be 1.
+        if len(neighbors) > 1:  # Sanity check
+            print "Not a node with degree 1!!!"
+            continue
 
-        for n_1 in neighbors:
-            n_2 = g_nx.neighbors(n_1)
-            avg_degree_n_2 = reduce(lambda acc, d: acc + g_nx.degree(d), n_2, 0)
-            num_of_n_2 += len(n_2)
+        n1 = neighbors[0]
 
-        print "The average degree of {}'s 2-hop neighborhood is: {}".format(node, avg_degree_n_2/num_of_n_2)
+        n2s = g_nx.neighbors(n1)
+        sum_degrees_n2s = reduce(lambda acc, d: acc + g_nx.degree(d), n2s, 0)
+        avg_degree_n2 = float(sum_degrees_n2s)/len(n2s)
 
+        print "The average degree of {}'s 2-hop neighborhood is: {}".format(node, avg_degree_n2)
+
+    # Using snap for plots.
     g_snap = snap.LoadEdgeList(snap.PUNGraph, graph_file_path)
 
     # Q2.d Plot the degree distribution
-    snap.PlotOutDegDistr(g_snap, graph_file_name+"-degree_distribution", "Plot of the degree distribution")
+    # snap.PlotOutDegDistr(g_snap, graph_file_name+"-degree_distribution", "Plot of the degree distribution")
+    plot_degree_distribution(g_nx, graph_file_name)
     print "Degree distribution of {} is in: {}".format(graph_file_name,
-                                                       "outDeg."+graph_file_name+"-degree_distribution.png")
+                                                       graph_file_name+"-degree_distribution.png")
 
     # Q3.a. Approximate full diameter (maximum shortest path length)
     full_diameters = []
@@ -126,84 +213,36 @@ def main(argv):
     if len(connected_components_gnx) > 0:
         num_nodes_largest_comp_gnx = len(connected_components_gnx[0])
 
-    frac_largest_comp_gnx = num_nodes_largest_comp_gnx/g_nx.number_of_nodes()
+    frac_largest_comp_gnx = float(num_nodes_largest_comp_gnx)/g_nx.number_of_nodes()
 
     print "Fraction of nodes in largest connected component in {}: {}".format(graph_file_name, frac_largest_comp_gnx)
 
     # Q4.b. Fraction of nodes in the largest connected component of the complement of the real graph
     num_nodes_largest_comp_gnxc = 0
     g_nx_c = nx.complement(g_nx, "g_nx_c")
+    # Sort the connected components based on size
     connected_components_gnxc = sorted(nx.connected_components(g_nx_c), key=len, reverse=True)
 
     if len(connected_components_gnxc) > 0:
         num_nodes_largest_comp_gnxc = len(connected_components_gnxc[0])
 
-    frac_largest_comp_gnxc = num_nodes_largest_comp_gnxc / g_nx_c.number_of_nodes()
+    frac_largest_comp_gnxc = float(num_nodes_largest_comp_gnxc) / g_nx_c.number_of_nodes()
 
     print "Fraction of nodes in largest connected component in {}'s complement: {}".format(graph_file_name,
                                                                                            frac_largest_comp_gnxc)
 
-    # todo Q4.c. Plot of the distribution of sizes of connected components.
-    comp_size_freq = {}
-    for conn in connected_components_gnx:
-        comp_size = len(conn)
-        # print comp_size
-        if comp_size not in comp_size_freq:
-            comp_size_freq[comp_size] = 0
+    # Q4.c. Plot of the distribution of sizes of connected components.
+    plot_distribution_of_connected_components(connected_components_gnx, graph_file_name)
 
-        comp_size_freq[comp_size] += 1
+    print "Component size distribution of {} is in: {}".format(graph_file_name,
+                                                               graph_file_name + "-scc_distribution.png")
 
-    comp_size_freq = sorted(comp_size_freq.items())
+    plot_distribution_of_connected_components(connected_components_gnxc,
+                                              graph_file_name + "_complement")
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    x_axis_vals = [k for (k, _) in comp_size_freq]
-    y_axis_vals = [v for (_, v) in comp_size_freq]
-    ax.plot(x_axis_vals, y_axis_vals, 'bo')
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-
-    plt.title("Plot of the distribution of sizes of connected components \n for {}".format(graph_file_name))
-    plt.xlabel("Component Size")
-    plt.ylabel("Frequency")
-
-    plt.draw()
-    plt.show()
-
-
-    # g_snap_c = snap.TUNGraph.New()
-    #
-    # for n in g_snap.Nodes():
-    #     g_snap_c.AddNode(int(n.GetId()))
-    #
-    # for s, d in g_nx_c.edges():
-    #     # print s + ", " + d
-    #     g_snap_c.AddEdge(int(s), int(d))
-    #
-    # snap.PlotSccDistr(g_snap, graph_file_name+"-scc_distribution",
-    #                   "Plot of the distribution of sizes of connected components")
-    # print "Component size distribution of {} is in: ".format(graph_file_name,
-    #                                                          graph_file_name + "-scc_distribution")
-
-
-    # snap.PlotSccDistr(g_snap_c, graph_file_name + "_complement-size_of_connected_comps_distribution",
-    #                   "Plot of the distribution of sizes of connected components")
-    # print "Component size distribution of the complement of {} is in: {}".format(
-    #     graph_file_name,
-    #     graph_file_name + "_complement-size_of_connected_comps_distribution")
-
-
-
-
-    # R.add_edges_from(((n, n2)
-    #                   for n, nbrs in G.adjacency_iter()
-    #                   for n2 in G if n2 not in nbrs
-    #                   if n != n2))
-
-    # snap.GenRndGnm(snap.PNGraph, 100, 1000)
-
-    # nx.draw(G)
-    # plt.show()
+    print "Component size distribution of the complement of {} is in: {}".format(
+        graph_file_name,
+        graph_file_name + "_complement-scc_distribution.png")
 
 
 if __name__ == "__main__":

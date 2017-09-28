@@ -2,8 +2,9 @@ Run the following command in the folder with the file gen-structure.py with corr
 
 $ python gen-structure.py <path/to/edgelist>
 
-# Libraries used:
+# Libraries used (All latest versions):
 - sys
 - networkx
 - snap
 - numpy
+- matplotlib
