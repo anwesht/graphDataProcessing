@@ -182,6 +182,7 @@ def setup_log_log_plot(ax, x_axis_vals, y_axis_vals):
 def plot_centrality_from_file(file_path=None, is_log_plot=False):
     if file_path is None:
         print "No input file provided."
+        return
 
     graph_name = file_path.split('/')[-1].split('.')[0]
     centrality_name = file_path.split('/')[-1].split('.')[1]
@@ -289,6 +290,7 @@ def plot_centralities(argv, is_log_plot=False):
 def get_top_entities_from_file(file_path, name_file_path, top=10):
     if file_path is None:
         print "No input file provided."
+        return
 
     print file_path
 
