@@ -231,10 +231,6 @@ DEBUG = True
 
 
 def main(argv):
-    if len(argv) != 1:
-        print "usage: python analyze-centrality.py <path/to/edgelist>"
-        sys.exit(0)
-
     graph_file_path = argv[0]
     graph_name = graph_file_path.split('/')[-1].split('.')[0]
 
@@ -289,6 +285,65 @@ def plot_centralities(argv, is_log_plot=False):
     plot_centrality_from_file(file_name + ".betweenness.txt", is_log_plot=is_log_plot)
     plot_centrality_from_file(file_name + ".clustering.txt", is_log_plot=is_log_plot)
 
+
+def get_top_entities_from_file(file_path, name_file_path, top=10):
+    if file_path is None:
+        print "No input file provided."
+
+    print file_path
+
+    graph_name = file_path.split('/')[-1].split('.')[0]
+    centrality_name = file_path.split('/')[-1].split('.')[1]
+
+    print "---------------------------------------------------------------------"
+    print "Top {} entities by {} centrality for {}".format(top, centrality_name, graph_name)
+    print "---------------------------------------------------------------------"
+
+    name_dict = {}
+    header = ""
+    with open(name_file_path, 'r') as n:
+        header = n.readline()
+        for line in n:
+            node_id = int(line.split()[0])
+            node_name = line.split()[1]
+            name_dict[node_id] = node_name
+
+    i = 1
+    output_file = "{}.{}.top-{}".format(graph_name, centrality_name, top)
+
+    with open(file_path, 'r') as f, open(output_file, 'w') as o:
+        o.write(header+"\n")
+        for line in f:
+            node_id = int(line.strip().split(",")[0])
+            o.write("{}. {} => {}\n".format(i, node_id, name_dict[node_id]))
+            print "{}. {} => {}".format(i, node_id, name_dict[node_id])
+            if i >= top:
+                break
+            i += 1
+
+
+def get_top_entities_by_centrality(argv, top=10):
+    graph_file_path = argv[0]
+    graph_name = graph_file_path.split('/')[-1].split('.')[0]
+    name_file_path = argv[1]
+
+    # Uncomment if graph_file and centrality output files are in the same directory
+    # data_file_path = "/".join(graph_file_path.split('/')[:-1]) + "/" + graph_name
+    data_file_path = graph_name
+
+    get_top_entities_from_file(data_file_path + ".degree.txt", name_file_path, top)
+    get_top_entities_from_file(data_file_path + ".closeness.txt", name_file_path, top)
+    get_top_entities_from_file(data_file_path + ".harmonic.txt", name_file_path, top)
+    get_top_entities_from_file(data_file_path + ".betweenness.txt", name_file_path, top)
+
+
 if __name__ == "__main__":
-    main(sys.argv[1:])
-    # plot_centralities(sys.argv[1:], is_log_plot=True)
+    if len(sys.argv) == 2:
+        main(sys.argv[1:])
+    elif len(sys.argv) == 3 and sys.argv[2] == "-plt":
+        plot_centralities(sys.argv[1:], is_log_plot=True)
+    elif len(sys.argv) == 3:
+        get_top_entities_by_centrality(sys.argv[1:])
+    else:
+        print "usage: python analyze-centrality.py <path/to/edgelist> [-plt | path/to/names/list]"
+        sys.exit(0)
