@@ -1,60 +1,7 @@
 import sys
-import snap
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# class ShortestPathMetrics:
-#     """
-#     Stores the shortest paths between two nodes
-#     """
-#     def __init__(self, g):
-#         self.shortest_paths = {}
-#         self.__g = g
-#         self.__find_all(g)
-#
-#     @staticmethod
-#     def get_key(n1, n2):
-#         return hash(n1.GetId()) + hash(n2.GetId())
-#
-#     def add(self, n1, n2, dist):
-#         self.shortest_paths[self.get_key(n1, n2)] = dist
-#
-#     def get(self, n1, n2):
-#         return self.shortest_paths[self.get_key(n1, n2)]
-#
-#     def __find_all(self, g):
-#         print "Number of Nodes : {}".format(g.GetNodes())
-#         node_list = list(g.Nodes())
-#         node_list_2 = list(g.Nodes())
-#         print type(node_list)
-#         print type(node_list_2[0])
-#         count = 0
-#
-#         for n1 in g.Nodes():
-#             for n2 in g.Nodes():
-#                 if n1.GetId() != n2.GetId():
-#                     # print "finding all shortest paths between: {} - {}".format(n1.GetId(), n2.GetId())
-#                     dist = snap.GetShortPath(g, n1.GetId(), n2.GetId())
-#                     self.add(n1, n2, dist)
-#                 count += 1
-#                 print "count = {}".format(count)
-#
-#     def get_harmonic_centrality(self, node):
-#         total_inverse_path_length = float(0)
-#         for n in self.__g.Nodes():
-#             if n.GetId() != node.GetId():
-#                 total_inverse_path_length += 1/self.get(node, n)
-#
-#         return total_inverse_path_length/(self.__g.GetNodes() - 1)
-#
-#     def get_closeness_centrality(self, node):
-#         total_path_length = float(0)
-#         for n in self.__g:
-#             if n.GetId != node.GetId():
-#                 total_path_length += self.get(node, n)
-#
-#         return self.__g.GetNodes()/total_path_length if total_path_length != 0 else 0.0
-#
 
 class ShortestPathMetrics:
     """
@@ -64,24 +11,14 @@ class ShortestPathMetrics:
         self.__g = g
         self.shortest_path_lengths = nx.all_pairs_shortest_path_length(g)
 
-    @staticmethod
-    def get_key(n1, n2):
-        return hash(n1) + hash(n2)
+    def get_shortest_path(self, n1, n2):
+        sp = 0
+        try:
+            sp = self.shortest_path_lengths[n1][n2]
+        except Exception as e:
+            pass
 
-    def add(self, n1, n2, dist):
-        self.shortest_path_lengths[self.get_key(n1, n2)] = dist
-
-    def get(self, n1, n2):
-        return self.shortest_path_lengths[self.get_key(n1, n2)]
-
-    # def get_harmonic_centrality(self):
-    #     harmonic = []
-    #     total_inverse_path_length = float(0)
-    #     for node, sp in self.shortest_path_lengths.items():
-    #         for n, l in sp[node]:
-    #             total_inverse_path_length += 1/l
-    #         harmonic.append((node, total_inverse_path_length / (self.__g.number_of_nodes() - 1)))
-    #     return harmonic
+        return sp
 
     def get_harmonic_centrality(self):
         """
@@ -93,11 +30,10 @@ class ShortestPathMetrics:
             j = all other nodes,
             d_ij = geodesic path from i to j (length of the path)
 
-        :param g: input graph
-        :return: list of pairs with 1st entry = node i, 2nd entry = harmonic centrality of i.
-        :rtype: list[tuple[int, int]]
+        :return: dictionary with key = node i, value = harmonic centrality of i.
+        :rtype: dict[int, float]
         """
-        harmonic = []
+        harmonic = {}
         n = nx.number_of_nodes(self.__g)
 
         for i in nx.nodes(self.__g):
@@ -109,56 +45,104 @@ class ShortestPathMetrics:
                     total_inverse_path_length += 1.0/l
 
             harmonic_centrality = (total_inverse_path_length / (n - 1))
-            harmonic.append((i, harmonic_centrality))
+            harmonic[i] = harmonic_centrality
 
         return harmonic
 
-    def get_closeness_centrality(self, node):
-        total_path_length = float(0)
-        for n in self.__g:
-            if n.GetId != node.GetId():
-                total_path_length += self.get(node, n)
+    def get_closeness_centrality(self):
+        """
+        Calculate the closeness centrality as in eqn 7.29 Newman:
+        C_i = n/sum of d_ij
+        where,
+            n = number of nodes in the network,
+            i = node for which the centrality is being calculated,
+            j = all other nodes,
+            d_ij = geodesic path from i to j (length of the path)
 
-        return self.__g.GetNodes()/total_path_length if total_path_length != 0 else 0.0
+        :return: dictionary with key = node i, value = closeness centrality of i.
+        :rtype: dict[int, float]
+        """
+        closeness = {}
+        n = nx.number_of_nodes(self.__g)
+
+        for i in nx.nodes(self.__g):
+            shortest_paths_for_node = self.shortest_path_lengths[i]
+            total_path_length = 0.0
+
+            for j, l in shortest_paths_for_node.items():
+                if i != j:
+                    total_path_length += 1.0 / l
+
+            closeness_centrality = n/total_path_length
+            closeness[i] = closeness_centrality
+
+        return closeness
 
 
 def get_local_clustering_coef(g, n):
     """
-    Calculate the local clustering coefficient as:
+    Calculate the local clustering coefficient as in eqn 7.42 Newman:
     C_i = (Number of pairs of neighbors of i that are connected) / (number of pairs of neighbors of i)
 
     :param g: input graph
+    :type g: nx.Graph
     :param n: the node i
+    :type n: int
     :return: C_i, or 0 if degree of n is 0 or 1
+    :rtype: float
     """
-
-    neighbors = list(n.GetOutEdges())
-    # print "length of neighbors {}".format(len(neighbors))
+    neighbors = g.neighbors(n)
     all_pairs = []
+
     for i, n1 in enumerate(neighbors):
         for n2 in neighbors[i:]:
-            all_pairs.append((g.GetNI(n1), g.GetNI(n2)))
+            all_pairs.append((n1, n2))
 
     if len(all_pairs) == 0:
         print "Zero local clustering coefficient"
         return 0.0
 
-    num_connected_neighbors = 0
+    num_connected_neighbors = 0.0
+
     for n1, n2 in all_pairs:
-        if n1.IsNbrNId(n2.GetId()):
+        if g.has_edge(n1, n2):
             num_connected_neighbors += 1
 
-    c_i = float(num_connected_neighbors) / len(all_pairs)
-    # print "c_i = {}".format(c_i)
+    c_i = num_connected_neighbors / len(all_pairs)
+
     return c_i
 
 
-def write_centrality(name, centrality_list):
+def get_all_local_clustering_coef(g):
+    """
+    Calculate local clustering coefficients for all nodes in the graph.
+    :param g: Input graph
+    :type g: nx.Graph
+    :return: Dictionary of local clustering coefficients keyed by the node id.
+    :rtype: dict[int, float]
+    """
+    local_cc = {}
+
+    for n in nx.nodes(g):
+        local_cc[n] = get_local_clustering_coef(g, n)
+
+    return local_cc
+
+
+def write_centrality(name, centrality_dict):
     print "writing file {}".format(name)
     with open(name, 'w') as f:
-        for n, d in sorted(centrality_list, key=lambda t: t[1], reverse=True):
+        for n, d in sorted(centrality_dict.items(), key=lambda (k, v): (v, k), reverse=True):
             f.write("{}, {}\n".format(n, d))
     f.close()
+
+
+def debug(msg="Nothing to Print"):
+    if DEBUG is True:
+        print msg
+
+
+DEBUG = True
 
 
 def main(argv):
@@ -171,45 +155,34 @@ def main(argv):
 
     print "Current file: {}".format(graph_name)
     print "nx version: {}".format(nx.__version__)
-    g_snap = snap.LoadEdgeList(snap.PUNGraph, graph_file_path)
+
+    # Read in the weighted edge lists file as an undirected graph with node type integer.
     g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph(), nodetype=int)
 
-    degree = []
-    closeness = []
-    harmonic = []
-    betweenness = []
-    clustering = []
+    # 1. Degree centrality
+    degree = nx.degree_centrality(g_nx)
+    debug("Finished degree centrality")
 
+    # 2. Closeness Centrality
+    closeness = nx.closeness_centrality(g_nx)
+    debug("Finished closeness centrality")
+
+    # 3. Harmonic Centrality
     shortest_path_metrics = ShortestPathMetrics(g_nx)
+    harmonic = shortest_path_metrics.get_harmonic_centrality()
+    debug("Finished harmonic centrality")
 
-    harmonic = shortest_path_metrics.get_harmonic_centrality()  # nx
-    print "Finished Setting Shortest Paths."
+    # Uncomment to check un-normalized harmonic centrality
+    # harmonic = nx.harmonic_centrality(g_nx)
 
-    print"networkx2 harmonic centrality"
-    h = nx.harmonic_centrality(g_nx)
+    # 4. Betweenness Centrality
+    # We did not normalize in class. But since we are plotting these, normalized here.
+    betweenness = nx.betweenness_centrality(g_nx, normalized=True)
+    debug("Finished betweenness centrality")
 
-    for n, c in h.items():
-        print "{} , {}".format(n, c)
-
-    for n in g_snap.Nodes():
-        degree.append((n.GetId(), snap.GetDegreeCentr(g_snap, n.GetId())))
-        closeness.append((n.GetId(), snap.GetClosenessCentr(g_snap, n.GetId())))
-        clustering.append((n.GetId(), get_local_clustering_coef(g_snap, n)))
-        # harmonic.append((n.GetId(), shortest_path_metrics.get_harmonic_centrality(n)))    # snap
-
-
-
-    print "Calculating Betweeness centrality"
-
-    nodes_betweenness = snap.TIntFltH()
-    edges_betweenness = snap.TIntPrFltH()
-
-    snap.GetBetweennessCentr(g_snap, nodes_betweenness, edges_betweenness, 1.0)
-
-    print "Finished calculating betweeness"
-
-    for n in nodes_betweenness:
-        betweenness.append((n, nodes_betweenness[n]))
+    # 5. Local Clustering Coefficient
+    clustering = get_all_local_clustering_coef(g_nx)
+    debug("Finished clustering centrality")
 
     # Write Degree Centrality
     write_centrality(graph_name + ".degree.txt", degree)
