@@ -36,7 +36,10 @@ def main(argv):
 
     degrees = nx.degree(g_nx)
 
+    # filtered_nodes = [n for n in degrees if degrees[n] < 50]
+    # filtered_nodes = [n for n in degrees if 50 <= degrees[n] <= 100]
     filtered_nodes = [n for n in degrees if degrees[n] > 100]
+
     sub_graph = g_nx.subgraph(filtered_nodes)
 
     ds = nx.degree(sub_graph)
@@ -44,7 +47,7 @@ def main(argv):
     plt.figure(figsize=(14, 14))
 
     nx.draw_random(sub_graph, with_labels=True,
-                   nodelist=ds.keys(), node_size=[d * 10 for d in ds.values()],
+                   nodelist=ds.keys(), node_size=[d * 70 for d in ds.values()],
                    font_size=8, edge_color='grey')
     # nx.draw_random(g_nx, with_labels=True,
     #                nodelist=degrees.keys(), node_size=[d * 10 for d in degrees.values()],
@@ -53,7 +56,7 @@ def main(argv):
     # plt.show()
 
     output_file = "-".join(mix_criteria) + ".elist.txt"
-    # plt.savefig(output_file + "-subgraph.png")
+    plt.savefig(output_file + "-subgraph.png")
 
     print "Edge list is in: {}".format(output_file)
 

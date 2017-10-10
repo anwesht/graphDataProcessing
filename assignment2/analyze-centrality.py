@@ -240,52 +240,6 @@ def debug(msg="Nothing to Print"):
 DEBUG = True
 
 
-def main(argv):
-    graph_file_path = argv[0]
-    graph_name = graph_file_path.split('/')[-1].split('.')[0]
-
-    print "Current file: {}".format(graph_name)
-    print "nx version: {}".format(nx.__version__)
-
-    # Read in the weighted edge lists file as an undirected graph with node type integer.
-    g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph(), nodetype=int)
-
-    # 1. Degree centrality
-    degree = nx.degree_centrality(g_nx)
-    debug("Finished degree centrality")
-
-    # 2. Closeness Centrality
-    # closeness = nx.closeness_centrality(g_nx)
-    # debug("Finished closeness centrality")
-
-    # 3. Harmonic Centrality
-    shortest_path_metrics = ShortestPathMetrics(g_nx)
-    harmonic = shortest_path_metrics.get_harmonic_centrality()
-    debug("Finished harmonic centrality")
-
-    closeness = shortest_path_metrics.get_closeness_centrality()
-    debug("Finished closeness centrality")
-
-    # Uncomment to check un-normalized harmonic centrality
-    # harmonic = nx.harmonic_centrality(g_nx)
-
-    # 4. Betweenness Centrality
-    # We did not normalize in class. But since we are plotting these, normalized here.
-    betweenness = nx.betweenness_centrality(g_nx, normalized=True)
-    debug("Finished betweenness centrality")
-
-    # 5. Local Clustering Coefficient
-    clustering = get_all_local_clustering_coef(g_nx)
-    debug("Finished clustering centrality")
-
-    # Write Degree Centrality
-    write_centrality(graph_name + ".degree.txt", degree)
-    write_centrality(graph_name + ".closeness.txt", closeness)
-    write_centrality(graph_name + ".harmonic.txt", harmonic)
-    write_centrality(graph_name + ".betweenness.txt", betweenness)
-    write_centrality(graph_name + ".clustering.txt", clustering)
-
-
 def plot_centralities(argv, is_log_plot=False):
     file_name = argv[0].split('/')[-1].split('.')[0]
 
@@ -411,6 +365,46 @@ def get_top_entities_by_centrality(argv, top=10):
     get_top_entities_from_file(data_file_path + ".closeness.txt", name_file_path, top)
     get_top_entities_from_file(data_file_path + ".harmonic.txt", name_file_path, top)
     get_top_entities_from_file(data_file_path + ".betweenness.txt", name_file_path, top)
+
+
+def main(argv):
+    graph_file_path = argv[0]
+    graph_name = graph_file_path.split('/')[-1].split('.')[0]
+
+    print "Current file: {}".format(graph_name)
+    print "nx version: {}".format(nx.__version__)
+
+    # Read in the weighted edge lists file as an undirected graph with node type integer.
+    g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph(), nodetype=int)
+
+    # 1. Degree centrality
+    degree = nx.degree_centrality(g_nx)
+    debug("Finished degree centrality")
+
+    # 2. Closeness Centrality
+    shortest_path_metrics = ShortestPathMetrics(g_nx)
+    closeness = shortest_path_metrics.get_closeness_centrality()
+    debug("Finished closeness centrality")
+
+    # 3. Harmonic Centrality
+    harmonic = shortest_path_metrics.get_harmonic_centrality()
+    debug("Finished harmonic centrality")
+
+    # 4. Betweenness Centrality
+    # We did not normalize in class. But since we are plotting these, normalized here.
+    betweenness = nx.betweenness_centrality(g_nx, normalized=True)
+    debug("Finished betweenness centrality")
+
+    # 5. Local Clustering Coefficient
+    clustering = get_all_local_clustering_coef(g_nx)
+    debug("Finished clustering centrality")
+
+    # Write Degree Centrality
+    write_centrality(graph_name + ".degree.txt", degree)
+    write_centrality(graph_name + ".closeness.txt", closeness)
+    write_centrality(graph_name + ".harmonic.txt", harmonic)
+    write_centrality(graph_name + ".betweenness.txt", betweenness)
+    write_centrality(graph_name + ".clustering.txt", clustering)
 
 
 if __name__ == "__main__":

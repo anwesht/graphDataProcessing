@@ -42,7 +42,6 @@ DEBUG = True
 def plot_distribution(distribution_dict, xlabel, ylabel, graph_name):
     distribution_dict = sorted(distribution_dict.items())
 
-    debug("type of dict: {}".format(type(distribution_dict)))
     x_axis_vals = [k for (k, _) in distribution_dict]
     y_axis_vals = [v for (_, v) in distribution_dict]
 
