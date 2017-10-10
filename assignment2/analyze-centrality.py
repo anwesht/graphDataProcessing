@@ -2,6 +2,7 @@ import sys
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import random
+import re
 
 
 class ShortestPathMetrics:
@@ -211,15 +212,22 @@ def plot_centrality_from_file(file_path=None, is_log_plot=False):
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
+    xlabel = "Rank"
+    ylabel = "%s centrality" % centrality_name
+
     if is_log_plot is True:
         setup_log_log_plot(ax, x_axis_vals, y_axis_vals)
+        xlabel = "log( " + xlabel + " )"
+        ylabel = "log( " + ylabel + " )"
 
     plt.title("Plot of the {} for \n for {}".format(centrality_name, graph_name))
-    plt.xlabel("Rank")
-    plt.ylabel("Centrality")
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     ax.plot(x_axis_vals, y_axis_vals, '-r')
 
-    file_name = graph_name + "." + centrality_name + ".log-log.png" if is_log_plot else ".png"
+    file_name = graph_name + "." + centrality_name + (".log-log.png" if is_log_plot else ".png")
+    print "filename: {}".format(file_name)
     fig.savefig(file_name)
 
 
@@ -307,11 +315,12 @@ def get_top_entities_from_file(file_path, name_file_path, top=10):
         header = n.readline()
         for line in n:
             node_id = int(line.split()[0])
-            node_name = line.split()[1]
+            # node_name = line.split()[1]
+            node_name = re.search('".*"', line).group(0)
             name_dict[node_id] = node_name
 
     i = 1
-    output_file = "{}.{}.top-{}".format(graph_name, centrality_name, top)
+    output_file = "{}.{}.top-{}.txt".format(graph_name, centrality_name, top)
 
     with open(file_path, 'r') as f, open(output_file, 'w') as o:
         o.write(header+"\n")
@@ -343,9 +352,11 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         main(sys.argv[1:])
     elif len(sys.argv) == 3 and sys.argv[2] == "-plt":
-        plot_centralities(sys.argv[1:], is_log_plot=True)
+        plot_centralities(sys.argv[1:], is_log_plot=False)
     elif len(sys.argv) == 3:
         get_top_entities_by_centrality(sys.argv[1:])
+    elif len(sys.argv) == 4 and sys.argv[2] == "-plt" and sys.argv[3] == "-log":
+        plot_centralities(sys.argv[1:], is_log_plot=True)
     else:
-        print "usage: python analyze-centrality.py <path/to/edgelist> [-plt | path/to/names/list]"
+        print "usage: python analyze-centrality.py <path/to/edgelist> [-plt [-log]| path/to/names/list]"
         sys.exit(0)
