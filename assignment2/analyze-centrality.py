@@ -111,8 +111,9 @@ def get_local_clustering_coef(g, n):
     all_pairs = []
 
     for i, n1 in enumerate(neighbors):
-        for n2 in neighbors[i:]:
-            all_pairs.append((n1, n2))
+        if i < len(neighbors):
+            for n2 in neighbors[i:]:
+                all_pairs.append((n1, n2))
 
     if len(all_pairs) == 0:
         print "Zero local clustering coefficient"
@@ -295,6 +296,70 @@ def plot_centralities(argv, is_log_plot=False):
     plot_centrality_from_file(file_name + ".clustering.txt", is_log_plot=is_log_plot)
 
 
+def read_centrality_values_from_file(fp):
+    vals = []
+    with open(fp, 'r') as f:
+        for line in f:
+            l = line.strip().split(",")
+            if len(l) == 0:
+                break
+
+            val = float(l[1].strip())
+            vals.append(val)
+
+    return vals
+
+
+def scatter_plot(fp1, fp2):
+    if fp1 is None or fp2 is None:
+        print "No files provided for scatter plot."
+        return
+
+    gn1 = fp1.split('/')[-1].split('.')[0]
+    cn1 = fp1.split('/')[-1].split('.')[1]
+
+    gn2 = fp2.split('/')[-1].split('.')[0]
+    cn2 = fp2.split('/')[-1].split('.')[1]
+
+    debug("Scatter Plot %s-%s VS %s-%s" % (gn2, cn2, gn1, cn1))
+
+    c1_vals = read_centrality_values_from_file(fp1)
+    c2_vals = read_centrality_values_from_file(fp2)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    xlabel = gn1 + " - " + cn1
+    ylabel = gn2 + " - " + cn2
+
+    plt.title("Scatter Plot {}-{} VS {}-{}".format(gn2, cn2, gn1, cn1))
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    ax.scatter(c1_vals, c2_vals, marker=".", color="r")
+
+    file_name = ylabel + "_vs_" + xlabel + ".png"
+    print "filename: {}".format(file_name)
+    fig.savefig(file_name)
+
+
+def plot_scatter_matrix(argv):
+    file_name = argv[0].split('/')[-1].split('.')[0]
+    centralities = [
+        file_name + ".degree.txt",
+        file_name + ".closeness.txt",
+        file_name + ".harmonic.txt",
+        file_name + ".betweenness.txt",
+        file_name + ".clustering.txt"
+    ]
+
+    for i, c1 in enumerate(centralities):
+        if i < len(centralities):
+            for j, c2 in enumerate(centralities[i+1:]):
+                print c1 + "   VS   " + c2
+                scatter_plot(c2, c1)
+
+
 def get_top_entities_from_file(file_path, name_file_path, top=10):
     if file_path is None:
         print "No input file provided."
@@ -353,6 +418,8 @@ if __name__ == "__main__":
         main(sys.argv[1:])
     elif len(sys.argv) == 3 and sys.argv[2] == "-plt":
         plot_centralities(sys.argv[1:], is_log_plot=False)
+    elif len(sys.argv) == 3 and sys.argv[2] == "-scatter":
+        plot_scatter_matrix(sys.argv[1:])
     elif len(sys.argv) == 3:
         get_top_entities_by_centrality(sys.argv[1:])
     elif len(sys.argv) == 4 and sys.argv[2] == "-plt" and sys.argv[3] == "-log":
