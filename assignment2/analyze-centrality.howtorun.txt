@@ -1,0 +1,27 @@
+Run the following command in the folder with the file analyze-centrality.py with correct path to edgelist file:
+
+$ python analyze-centrality.py <path/to/edgelist> [-plt [-log]| path/to/names/list]
+
+1. Run the following to generate the output files.
+$ python analyze-centrality.py <path/to/edgelist>
+
+2. After executing step 1, the optional parameters can be used. When using the parameters, it code will use the
+   output data from step 1 and hence avoids lengthy computation time. Note that the path to edgelist must still be
+   provided as the file names will be calculated based on that name.
+
+   Option descriptions::
+   a. -plt => Generates the centrality-rank plots.
+   b. -plt -log => Generates the log(centrality)-log(rank) plots.
+   c> path/to/name/list => Providing both the edgelist and namelist as parameter generates the top 10 entries by
+      centrality.
+
+      Note: The format in the .name files are inconsistent (some have the names withing quotes and some have the names only
+      separated by space). Please use the appropriate method to split the line manually (mentioned as comments in
+      the function get_top_entities_from_file() )
+
+# Libraries used:
+- sys
+- networkx (1.11)
+- matplotlib (2.0.2)
+- random
+- re

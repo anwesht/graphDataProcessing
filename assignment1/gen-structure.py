@@ -123,7 +123,8 @@ def main(argv):
 
     print "Current file: {}".format(graph_file_name)
 
-    g_nx = nx.read_edgelist(graph_file_path)
+    # g_nx = nx.read_edgelist(graph_file_path)
+    g_nx = nx.read_weighted_edgelist(graph_file_path)
 
     # Q1.a. print the number of nodes in the graph
     print "Number of nodes in {}: {}".format(graph_file_name, g_nx.number_of_nodes())
@@ -174,6 +175,10 @@ def main(argv):
     plot_degree_distribution(g_nx, graph_file_name)
     print "Degree distribution of {} is in: {}".format(graph_file_name,
                                                        graph_file_name+"-degree_distribution.png")
+
+    #  added for assignment 2
+    print "Approx. diameter in {} ".format(nx.diameter(g_nx))
+
 
     # Q3.a. Approximate full diameter (maximum shortest path length)
     full_diameters = []

@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 from random import choice
 
 
+DEBUG = True
+
+
 def get_local_clustering_coef(g, n):
     """
     This code was duplicated here from analyze-centrality.py because of the naming conventions used in the files.
@@ -13,8 +16,9 @@ def get_local_clustering_coef(g, n):
     all_pairs = []
 
     for i, n1 in enumerate(neighbors):
-        for n2 in neighbors[i:]:
-            all_pairs.append((n1, n2))
+        if i < len(neighbors):
+            for n2 in neighbors[i:]:
+                all_pairs.append((n1, n2))
 
     if len(all_pairs) == 0:
         print "Zero local clustering coefficient"
@@ -34,9 +38,6 @@ def get_local_clustering_coef(g, n):
 def debug(msg="Nothing to Print"):
     if DEBUG is True:
         print msg
-
-
-DEBUG = True
 
 
 def plot_distribution(distribution_dict, xlabel, ylabel, graph_name):
@@ -71,7 +72,8 @@ def main(argv):
     print "nx version: {}".format(nx.__version__)
 
     # 1. Read in the weighted edge lists file as an undirected graph with node type integer.
-    g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph(), nodetype=int)
+    # g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph(), nodetype=int)
+    g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph())
 
     # Number of triads.
     num_triads = len(nx.triangles(g_nx))

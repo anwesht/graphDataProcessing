@@ -5,6 +5,9 @@ from random import random
 import re
 
 
+DEBUG = False  # Toggles debug messages
+
+
 class ShortestPathMetrics:
     """
     Stores the shortest paths between two nodes
@@ -237,9 +240,6 @@ def debug(msg="Nothing to Print"):
         print msg
 
 
-DEBUG = True
-
-
 def plot_centralities(argv, is_log_plot=False):
     file_name = argv[0].split('/')[-1].split('.')[0]
 
@@ -334,8 +334,8 @@ def get_top_entities_from_file(file_path, name_file_path, top=10):
         header = n.readline()
         for line in n:
             node_id = int(line.split()[0])
-            # node_name = line.split()[1]
-            node_name = re.search('".*"', line).group(0)
+            # node_name = line.split()[1]  # Use if the name list file is separated by space without ""
+            node_name = re.search('".*"', line).group(0)  # Use if the name list has the node names enclosed in ""
             name_dict[node_id] = node_name
 
     i = 1
@@ -357,8 +357,6 @@ def get_top_entities_by_centrality(argv, top=10):
     graph_name = graph_file_path.split('/')[-1].split('.')[0]
     name_file_path = argv[1]
 
-    # Uncomment if graph_file and centrality output files are in the same directory
-    # data_file_path = "/".join(graph_file_path.split('/')[:-1]) + "/" + graph_name
     data_file_path = graph_name
 
     get_top_entities_from_file(data_file_path + ".degree.txt", name_file_path, top)
@@ -375,7 +373,8 @@ def main(argv):
     print "nx version: {}".format(nx.__version__)
 
     # Read in the weighted edge lists file as an undirected graph with node type integer.
-    g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph(), nodetype=int)
+    # g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph(), nodetype=int)
+    g_nx = nx.read_weighted_edgelist(path=graph_file_path, create_using=nx.Graph())
 
     # 1. Degree centrality
     degree = nx.degree_centrality(g_nx)

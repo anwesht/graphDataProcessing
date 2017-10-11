@@ -1,0 +1,9 @@
+Run the following command in the folder with the file analyze-centrality.py with correct path to edgelist file:
+
+$ python analyze-centrality.py <path/to/edgelist>
+
+# Libraries used:
+- sys
+- networkx
+- itertools
+- matplotlib

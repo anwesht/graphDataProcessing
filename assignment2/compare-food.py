@@ -2,7 +2,6 @@ import sys
 import networkx as nx
 import itertools
 import matplotlib.pyplot as plt
-from random import random
 
 
 def main(argv):
