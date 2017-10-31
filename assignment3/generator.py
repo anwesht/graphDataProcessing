@@ -18,14 +18,13 @@ class Generator:
         self.graph = nx.complete_graph(n0)
 
     def __str__(self):
-        print ("Graph parameters: "
-               + "Number of nodes in initial network (N0): " + self.num_start_nodes
-               + "Required number of nodes (N): " + self.num_nodes
-               + "Penetration depth(l): " + self.penetration_depth
-               + "Number of links formed in each time step (m): " + self.num_links
-               + "Probablity that a new node is a follower (type I) (1 - p): " + self.prob_follower
-               + "Probablity that a new node is a leader (type II) (p): " + self.prob_leader
-               )
+        return "Graph parameters: \n" \
+               + "Number of nodes in initial network (N0): {} \n".format(self.num_start_nodes) \
+               + "Required number of nodes (N): {} \n".format(self.num_nodes) \
+               + "Penetration depth(l): {} \n".format(self.penetration_depth) \
+               + "Number of links formed in each time step (m): {}\n".format(self.num_links) \
+               + "Probablity that a new node is a follower (type I) (1 - p): {} \n".format(self.prob_follower) \
+               + "Probablity that a new node is a leader (type II) (p): {}".format(self.prob_leader)
 
     def get_type_of_node(self):
         return rand([self.FOLLOWER, self.LEADER], p=[self.prob_follower, self.prob_leader])
@@ -58,17 +57,17 @@ class Generator:
                 current_group = list(group.next()[1])
                 n = get_random_node(current_group)
 
-            print ("adding edge to node {} with degree {}".format(n, g.degree(n)))
+            # print ("adding edge to node {} with degree {}".format(n, g.degree(n)))
             self.graph.add_edge(current_node, n)
 
-        # Simply picking the next node in sorted_degrees.
-        # for _ in range(0, self.num_links):
-        #     n = sorted_degrees.pop(0)[0]
-        #     self.graph.add_edge(current_node, n)
+            # Simply picking the next node in sorted_degrees.
+            # for _ in range(0, self.num_links):
+            #     n = sorted_degrees.pop(0)[0]
+            #     self.graph.add_edge(current_node, n)
 
     def generate(self):
         for t in range(self.num_start_nodes, self.num_nodes):
-            print ("Time step: {}".format(t))
+            # print ("Time step: {}".format(t))
 
             # Choose a random node as anchor node.
             anchor_node = rand(self.graph.nodes())
@@ -85,8 +84,3 @@ class Generator:
                 self.add_leader_edge(t, sub_graph)
 
         return self.graph
-
-
-
-
-
