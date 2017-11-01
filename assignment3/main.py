@@ -74,15 +74,17 @@ def plot_assortativity(m_dict):
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    fig.legend(loc="bottom right")
 
     i = 0
     for (m, p_dict) in m_dict.items():
-        x_axis_vals = [k for (k, _) in p_dict]
-        y_axis_vals = [v for (_, v) in p_dict]
+        print "pdict: {}".format(p_dict)
+        x_axis_vals = [k for (k, _) in p_dict.items()]
+        y_axis_vals = [v for (_, v) in p_dict.items()]
 
         ax.plot(x_axis_vals, y_axis_vals, color=colors[i], label=m)
         i = (i + 1) % 4
+
+    ax.legend(loc='best')
 
 
 def get_output_file(graph_name, n, p, m, l):
@@ -91,14 +93,16 @@ def get_output_file(graph_name, n, p, m, l):
 
 
 def generate_graphs(graph_name, n, l=1):
+    # m_list = [2]
+    # p_list = [0.2, 0.3]
     m_list = [2, 5, 10]
     p_list = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
     assortativities = {}
     for m in m_list:
+        p_r_dict = {}
         for p in p_list:
             sum_of_r = 0.0
-            r_p_dict = {}
             for i in range(0, 10):
                 graph = Generator(n0=m+1, n=n, l=1, m=m, p=p).generate()
                 of = get_output_file(graph_name, n, p, m, l)
@@ -106,9 +110,10 @@ def generate_graphs(graph_name, n, l=1):
 
                 sum_of_r += nx.degree_assortativity_coefficient(graph)
             r = sum_of_r/10
-            r_p_dict[r] = p
-        assortativities[m] = r_p_dict
+            p_r_dict[p] = r
+        assortativities[m] = p_r_dict
 
+    print "Assortativities: {}".format(assortativities)
     plot_assortativity(assortativities)
 
 
@@ -125,7 +130,7 @@ def main():
     arxiv = nx.read_edgelist(path=ARXIV, create_using=nx.Graph())
     Analyzer(arxiv, "arxiv").analyze()
 
-    analyzer.plot_degree_distribution(facebook)
+    # analyzer.plot_degree_distribution(facebook)
 
     # generate_graphs(FACEBOOK.split('/')[-1].split('.')[0], facebook.number_of_nodes())
     generate_graphs("fb107", facebook.number_of_nodes())
