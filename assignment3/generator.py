@@ -47,31 +47,93 @@ class Generator:
                 nodes.remove(n)
                 self.graph.add_edge(current_node, n)
 
-    def add_leader_edge(self, current_node, g):
+    def add_leader_edge_2(self, current_node, g):
         def get_random_node(node_list):
-            rand_index = rand(range(0, len(node_list)))
-            return node_list.pop(rand_index)[0]
+            # rand_index = rand(range(0, len(node_list)))
+            rand_index = rand(node_list)
+            # return node_list.pop(rand_index)[0]
+            return rand_index
+
+        def groupby(degrees_dict):
+            grouped = {}
+            for (node, degree) in degrees_dict:
+                if degree in grouped:
+                    grouped[degree].append(node)
+                else:
+                    grouped[degree] = [node]
+
+            return sorted(grouped, key=lambda t: t[0])
 
         self.graph.add_node(current_node, attr_dict={'type': self.LEADER})
 
-        sorted_degrees = sorted(g.degree(), key=lambda t: t[1])
+        # sorted_degrees = sorted(g.degree(), key=lambda t: t[1])
 
-        """
-        group = list(groupby(sorted_degrees, key=lambda t: t[1]))
+        # sorted_degrees = sorted(self.graph.degree(g.nodes()), key=lambda t: t[1])
+
+        group = sorted(list(groupby(self.graph.degree(g.nodes()), key=lambda t: t[1])), key=lambda t: t[1])
         group_index = 0
 
         current_group = []
 
         # Randomly selecting a node with minimum degree instead of simply popping from sorted_degrees
-        
         for _ in range(0, self.num_links):
             if len(current_group) > 0:
                 n = get_random_node(current_group)
             elif group_index < len(group):
+                print "-------------------------"
+                print "group {}: {}".format(group_index, group)
+                print "group index: {}".format(group[group_index])
+                current_group = list(group[group_index][1])
+                current_group = map(lambda (k, v): k, current_group)
+                print "current group {}".format(current_group)
+                group_index += 1
+                if len(current_group) == 0:
+                    break
+                n = get_random_node(current_group)
+            else:
+                break
+            # print ("adding edge to node {} with degree {}".format(n, g.degree(n)))
+            self.graph.add_edge(current_node, n)
+
+    def add_leader_edge_3(self, current_node, g):
+        def get_random_node(node_list):
+            # rand_index = rand(range(0, len(node_list)))
+            rand_index = rand(node_list)
+            # return node_list.pop(rand_index)[0]
+            return rand_index
+
+        def groupby_degree(degrees_dict):
+            grouped = {}
+            for (node, degree) in degrees_dict:
+                if degree in grouped:
+                    grouped[degree].append(node)
+                else:
+                    grouped[degree] = [node]
+
+            return sorted(grouped.items(), key=lambda t: t[0])
+
+        self.graph.add_node(current_node, attr_dict={'type': self.LEADER})
+
+        # sorted_degrees = sorted(g.degree(), key=lambda t: t[1])
+
+        # sorted_degrees = sorted(self.graph.degree(g.nodes()), key=lambda t: t[1])
+
+        # group = sorted(list(groupby(self.graph.degree(g.nodes()), key=lambda t: t[1])), key=lambda t: t[1])
+        group = groupby_degree(self.graph.degree(g.nodes()))
+        group_index = 0
+
+        current_group = []
+
+        # Randomly selecting a node with minimum degree instead of simply popping from sorted_degrees
+        for _ in range(0, self.num_links):
+            if len(current_group) > 0:
+                n = get_random_node(current_group)
+            elif len(group) > 0:
                 # print "-------------------------"
                 # print "group {}: {}".format(group_index, group)
                 # print "group index: {}".format(group[group_index])
-                current_group = list(group[group_index][1])
+                current_group = group.pop(0)[1]
+                # current_group = map(lambda (k, v): k, current_group)
                 # print "current group {}".format(current_group)
                 group_index += 1
                 if len(current_group) == 0:
@@ -81,15 +143,8 @@ class Generator:
                 break
             # print ("adding edge to node {} with degree {}".format(n, g.degree(n)))
             self.graph.add_edge(current_node, n)
-        """
 
-        # Simply picking the next node in sorted_degrees.
-        for _ in range(0, self.num_links):
-            if len(sorted_degrees) > 0:
-                n = sorted_degrees.pop(0)[0]
-                self.graph.add_edge(current_node, n)
-
-    def add_leader_edge_2(self, current_node, g):
+    def add_leader_edge(self, current_node, g):
         def get_random_node(node_list):
             rand_index = rand(range(0, len(node_list)))
             return node_list.pop(rand_index)[0]
@@ -125,7 +180,8 @@ class Generator:
             else:
                 self.leader_count += 1
                 # self.add_leader_edge(t, sub_graph)
-                self.add_leader_edge_2(t, sub_graph)
+                # self.add_leader_edge_2(t, sub_graph)
+                self.add_leader_edge_3(t, sub_graph)
 
         self.assortativity = nx.degree_assortativity_coefficient(self.graph)
         self.num_edges = self.graph.number_of_edges()
