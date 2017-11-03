@@ -1,7 +1,5 @@
 import networkx as nx
-import matplotlib.pyplot as plt
 from numpy.random import choice as rand
-from itertools import groupby
 
 
 class Generator:
@@ -36,9 +34,19 @@ class Generator:
                + "\tNumber of edges: {} \n".format(self.num_edges)
 
     def get_type_of_node(self):
+        """
+        Select the type of the next node based on given probability.
+        :return: the selected type for current node
+        :rtype: int
+        """
         return rand([self.FOLLOWER, self.LEADER], p=[self.prob_follower, self.prob_leader])
 
     def add_follower_edge(self, current_node, g):
+        """
+        Add a follower (type I) edge uniformly at random.
+        :param current_node: the node being added to the graph
+        :param g: the sub-graph Gj, from which the pairing node is to be selected
+        """
         self.graph.add_node(current_node, attr_dict={'type': self.FOLLOWER})
         nodes = list(g.nodes())
         for _ in range(0, self.num_links):
@@ -47,62 +55,29 @@ class Generator:
                 nodes.remove(n)
                 self.graph.add_edge(current_node, n)
 
-    def add_leader_edge_2(self, current_node, g):
+    def add_leader_edge(self, current_node, g):
+        """
+        Add a leader (type II) edge following anti-preferential attachment.
+        :param current_node: the node being added to the graph
+        :param g: the sub-graph Gj, from which the pairing node is to be selected
+        """
         def get_random_node(node_list):
-            # rand_index = rand(range(0, len(node_list)))
+            """
+            Select a random node from given list.
+            :param node_list: the source list of nodes
+            :return: selected node
+            """
             rand_index = rand(node_list)
-            # return node_list.pop(rand_index)[0]
-            return rand_index
-
-        def groupby(degrees_dict):
-            grouped = {}
-            for (node, degree) in degrees_dict:
-                if degree in grouped:
-                    grouped[degree].append(node)
-                else:
-                    grouped[degree] = [node]
-
-            return sorted(grouped, key=lambda t: t[0])
-
-        self.graph.add_node(current_node, attr_dict={'type': self.LEADER})
-
-        # sorted_degrees = sorted(g.degree(), key=lambda t: t[1])
-
-        # sorted_degrees = sorted(self.graph.degree(g.nodes()), key=lambda t: t[1])
-
-        group = sorted(list(groupby(self.graph.degree(g.nodes()), key=lambda t: t[1])), key=lambda t: t[1])
-        group_index = 0
-
-        current_group = []
-
-        # Randomly selecting a node with minimum degree instead of simply popping from sorted_degrees
-        for _ in range(0, self.num_links):
-            if len(current_group) > 0:
-                n = get_random_node(current_group)
-            elif group_index < len(group):
-                print "-------------------------"
-                print "group {}: {}".format(group_index, group)
-                print "group index: {}".format(group[group_index])
-                current_group = list(group[group_index][1])
-                current_group = map(lambda (k, v): k, current_group)
-                print "current group {}".format(current_group)
-                group_index += 1
-                if len(current_group) == 0:
-                    break
-                n = get_random_node(current_group)
-            else:
-                break
-            # print ("adding edge to node {} with degree {}".format(n, g.degree(n)))
-            self.graph.add_edge(current_node, n)
-
-    def add_leader_edge_3(self, current_node, g):
-        def get_random_node(node_list):
-            # rand_index = rand(range(0, len(node_list)))
-            rand_index = rand(node_list)
-            # return node_list.pop(rand_index)[0]
             return rand_index
 
         def groupby_degree(degrees_dict):
+            """
+            Group the nodes by degree.
+            :param degrees_dict: the node to degree dictionary
+            :type degrees_dict: dict[int, int]
+            :return: nodes grouped by degree, sorted in increasing order of degrees.
+            :rtype: list[tuple[int, list[int]]]
+            """
             grouped = {}
             for (node, degree) in degrees_dict:
                 if degree in grouped:
@@ -114,11 +89,6 @@ class Generator:
 
         self.graph.add_node(current_node, attr_dict={'type': self.LEADER})
 
-        # sorted_degrees = sorted(g.degree(), key=lambda t: t[1])
-
-        # sorted_degrees = sorted(self.graph.degree(g.nodes()), key=lambda t: t[1])
-
-        # group = sorted(list(groupby(self.graph.degree(g.nodes()), key=lambda t: t[1])), key=lambda t: t[1])
         group = groupby_degree(self.graph.degree(g.nodes()))
         group_index = 0
 
@@ -129,29 +99,23 @@ class Generator:
             if len(current_group) > 0:
                 n = get_random_node(current_group)
             elif len(group) > 0:
-                # print "-------------------------"
-                # print "group {}: {}".format(group_index, group)
-                # print "group index: {}".format(group[group_index])
                 current_group = group.pop(0)[1]
-                # current_group = map(lambda (k, v): k, current_group)
-                # print "current group {}".format(current_group)
                 group_index += 1
                 if len(current_group) == 0:
                     break
                 n = get_random_node(current_group)
             else:
                 break
-            # print ("adding edge to node {} with degree {}".format(n, g.degree(n)))
             self.graph.add_edge(current_node, n)
 
-    def add_leader_edge(self, current_node, g):
-        def get_random_node(node_list):
-            rand_index = rand(range(0, len(node_list)))
-            return node_list.pop(rand_index)[0]
-
+    def add_leader_edge_simple(self, current_node, g):
+        """
+        Add a leader (type II) edge following anti-preferential attachment,
+        but without randomization
+        :param current_node: the node being added to the graph
+        :param g: the sub-graph Gj, from which the pairing node is to be selected
+        """
         self.graph.add_node(current_node, attr_dict={'type': self.LEADER})
-
-        # sorted_degrees = sorted(g.degree(), key=lambda t: t[1])
 
         sorted_degrees = sorted(self.graph.degree(g.nodes()), key=lambda t: t[1])
 
@@ -162,9 +126,14 @@ class Generator:
                 self.graph.add_edge(current_node, n)
 
     def generate(self):
+        """
+        Generate a graph based on Sendina-Nadal's
+        "Assortativity and leadership emerge from anti-preferential attachment in heterogeneous networks"
+        paper.
+        :return: The generated graph
+        :rtype: networkx.Graph
+        """
         for t in range(self.num_start_nodes, self.num_nodes):
-            # print ("Time step: {}".format(t))
-
             # Choose a random node as anchor node.
             anchor_node = rand(self.graph.nodes())
 
@@ -179,9 +148,8 @@ class Generator:
                 self.add_follower_edge(t, sub_graph)
             else:
                 self.leader_count += 1
-                # self.add_leader_edge(t, sub_graph)
-                # self.add_leader_edge_2(t, sub_graph)
-                self.add_leader_edge_3(t, sub_graph)
+                # self.add_leader_edge_simple(t, sub_graph)
+                self.add_leader_edge(t, sub_graph)
 
         self.assortativity = nx.degree_assortativity_coefficient(self.graph)
         self.num_edges = self.graph.number_of_edges()
