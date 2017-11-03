@@ -49,18 +49,19 @@ def plot_degree_distribution(name, grouped_degree_dict):
     :param grouped_degree_dict: dictionary with key = label and value = dictionary of degree distribution
     :type grouped_degree_dict: dict[str, dict[int, float]]
     """
-    plt.xlabel("log (k)")   # Degree
-    plt.ylabel("log (Pk)")  # frequency/ degree distribution
-
     global num_figures
 
     fig = plt.figure(num_figures)
     num_figures += 1
+
     fig.suptitle("Plot of the degree distribution \nfor: {}".format(name))
 
     ax = fig.add_subplot(111)
     ax.set_xscale('log')
     ax.set_yscale('log')
+
+    ax.set_xlabel("log (k)")  # Degree
+    ax.set_ylabel("log (Pk)")  # frequency/ degree distribution
 
     grouped_degree_dict = sorted(grouped_degree_dict.items())
 
@@ -87,9 +88,6 @@ def plot_assortativity(name, m_dict):
     """
     print "Plotting assortativity"
 
-    plt.xlabel("p")  # Probability of leader
-    plt.ylabel("r")  # Assortativity
-
     global num_figures
     fig = plt.figure(num_figures)
     fig.suptitle('Plot: Assortativity coefficient (r) vs p\n for: {}'.format(name))
@@ -97,6 +95,8 @@ def plot_assortativity(name, m_dict):
     num_figures += 1
 
     ax = fig.add_subplot(111)
+    ax.set_xlabel("p")  # Probability of leader
+    ax.set_ylabel("r")  # Assortativity
 
     i = 0
     for (m, p_dict) in m_dict.items():
@@ -181,7 +181,6 @@ def generate_graphs(graph_name, n0=10, n=100, l=1, m_list=[2, 5, 10], p_list=[0.
 
         assortativities[m] = p_r_dict
 
-    print "avg degree dict by p: {}".format(avg_degree_dict_by_p)
     print "Assortativities: {}".format(assortativities)
     assortativities_name = "{}-n={}-assortativity.png".format(graph_name, n)
     plot_assortativity(assortativities_name, assortativities)
