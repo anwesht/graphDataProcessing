@@ -15,6 +15,11 @@ Please follow this structure or update the path in these variables.
 the graphs corresponding to p = [0, 1] and the other generates the graph with 
 selected parameters. Please comment/uncomment the code in main.py as necessary.
 
+3. Packages used:
+- networkx 2.0
+- matplotlib
+- numpy
+
 # Usage:
 The main.py script takes in 1 argument and generates the graphs and plots 
 for the dataset corresponding to that argument.
