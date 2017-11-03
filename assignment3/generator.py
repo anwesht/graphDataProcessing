@@ -131,7 +131,7 @@ class Generator:
         "Assortativity and leadership emerge from anti-preferential attachment in heterogeneous networks"
         paper.
         :return: The generated graph
-        :rtype: networkx.Graph
+        :rtype: Graph
         """
         for t in range(self.num_start_nodes, self.num_nodes):
             # Choose a random node as anchor node.

@@ -16,7 +16,7 @@ def draw(g):
     """
     Draw the graph
     :param g: graph to draw
-    :type g: networkx.Graph
+    :type g: Graph
     """
     nx.draw(g, with_labels=True)
     # plt.show()
@@ -26,7 +26,7 @@ def get_degree_dict(g):
     """
     Get the degree distribution of the given graph
     :param g: the input graph
-    :type g: networkx.Graph
+    :type g: Graph
     :return: a dictionary with key = degree and value = it's distribution
     :rtype: dict [int, float]
     """
@@ -136,7 +136,7 @@ def generate_graphs(graph_name, n0=10, n=100, l=1, m_list=[2, 5, 10], p_list=[0.
     :param m_list: list of values of m (number of links formed for each new node)
     :param p_list: list of values of p (probability of leader)
     :return: avg_degree_dict_by_p
-    :rtype: dict[float, dict[int, float]]
+    :rtype: dict[str, dict[int, float]]
     """
     assortativities = {}
     num_runs = 10
@@ -144,7 +144,9 @@ def generate_graphs(graph_name, n0=10, n=100, l=1, m_list=[2, 5, 10], p_list=[0.
     avg_degree_dict_by_p = {}
 
     for m in m_list:
-        n0 = m
+        if len(m_list) > 1:
+            n0 = m
+
         p_r_dict = {}
         for p in p_list:
             sum_of_r = 0.0
@@ -198,17 +200,25 @@ def main(argv):
                                               m_list=[25],
                                               p_list=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])  # saved this. p =0.43
 
+        # Uncomment to generate the graph with selected parameters
+        # grouped_degree_dict = generate_graphs("facebook", n0=30, n=facebook.number_of_nodes(), l=1, m_list=[25],
+        #                                     p_list=[0.43])  #p =0.43
+
         grouped_degree_dict["facebook"] = dict(get_degree_dict(facebook))
         plot_degree_distribution("facebook", grouped_degree_dict)
     elif argv == "arxiv":
         arxiv = nx.read_edgelist(path=ARXIV, create_using=nx.Graph())
         Analyzer(arxiv, "arxiv").analyze()
 
-        grouped_degree_dict = generate_graphs("arxiv",
-                                              n0=5,
-                                              n=arxiv.number_of_nodes(),
-                                              l=3,
-                                              m_list=[3],
+        # grouped_degree_dict = generate_graphs("arxiv",
+        #                                       n0=5,
+        #                                       n=arxiv.number_of_nodes(),
+        #                                       l=1,
+        #                                       m_list=[3],
+        #                                       p_list=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
+        # Uncomment to generate the graph with selected parameters
+        grouped_degree_dict = generate_graphs("arxiv", n0=5, n=arxiv.number_of_nodes(), l=3, m_list=[3],
                                               p_list=[0.95])
 
         grouped_degree_dict["arxiv"] = dict(get_degree_dict(arxiv))
