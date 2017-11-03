@@ -7,7 +7,6 @@ import sys
 
 FACEBOOK = "./dataset/fb107.txt"
 ARXIV = "./dataset/caGrQc.txt"
-OUTPUT_DIR = "SYNTHGRAPHS/"
 num_figures = 0  # the number of figures drawn.
 COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']  # colors to use in plots.
 
@@ -187,6 +186,14 @@ def generate_graphs(graph_name, n0=10, n=100, l=1, m_list=[2, 5, 10], p_list=[0.
     return avg_degree_dict_by_p
 
 
+def calculate_local_assortativity(node, graph):
+    alpha = 0.0
+    for n in graph.neighbors(node):
+        alpha += (graph.degree(n) - 1)
+
+    alpha *= ((graph.degree(node) - 1)/(2 * graph.number_of_edges()))
+
+
 def main(argv):
     if argv == "facebook":
         facebook = nx.read_edgelist(path=FACEBOOK, create_using=nx.Graph())
@@ -197,7 +204,7 @@ def main(argv):
                                               n=facebook.number_of_nodes(),
                                               l=1,
                                               m_list=[25],
-                                              p_list=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])  # saved this. p =0.43
+                                              p_list=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
         # Uncomment to generate the graph with selected parameters
         # grouped_degree_dict = generate_graphs("facebook", n0=30, n=facebook.number_of_nodes(), l=1, m_list=[25],
@@ -209,16 +216,16 @@ def main(argv):
         arxiv = nx.read_edgelist(path=ARXIV, create_using=nx.Graph())
         Analyzer(arxiv, "arxiv").analyze()
 
-        # grouped_degree_dict = generate_graphs("arxiv",
-        #                                       n0=5,
-        #                                       n=arxiv.number_of_nodes(),
-        #                                       l=1,
-        #                                       m_list=[3],
-        #                                       p_list=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        grouped_degree_dict = generate_graphs("arxiv",
+                                              n0=5,
+                                              n=arxiv.number_of_nodes(),
+                                              l=1,
+                                              m_list=[3],
+                                              p_list=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
         # Uncomment to generate the graph with selected parameters
-        grouped_degree_dict = generate_graphs("arxiv", n0=5, n=arxiv.number_of_nodes(), l=3, m_list=[3],
-                                              p_list=[0.95])
+        # grouped_degree_dict = generate_graphs("arxiv", n0=5, n=arxiv.number_of_nodes(), l=3, m_list=[3],
+        #                                       p_list=[0.95])
 
         grouped_degree_dict["arxiv"] = dict(get_degree_dict(arxiv))
         plot_degree_distribution("arxiv", grouped_degree_dict)
