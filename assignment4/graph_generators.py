@@ -19,6 +19,7 @@ class Metrics:
         self.transitivity = 0.0
         self.avg_degree = 0.0
         self.avg_spl = 0
+        self.diameter = 0.0
 
     def __str__(self):
         return "Name of Graph: {}\n".format(self.name) \
@@ -52,33 +53,11 @@ class Metrics:
 
         self.clustering_coeff = nx.clustering(self.g)
         self.transitivity = nx.transitivity(self.g)
+        self.diameter = nx.diameter(self.g)
 
         self.avg_spl = self.calculate_spl()
 
         return self
-
-    # def calculate(self):
-    #     self.num_nodes = self.g.GetNodes()
-    #     self.num_edges = self.g.GetEdges()
-    #     self.clustering_coeff = snap.GetClustCf(self.g, -1)
-    #     self.num_triads = snap.GetTriads(self.g, -1)
-    #
-    #     # Calculate the average degree
-    #     sum_degrees = 0.0
-    #     for n in self.g.Nodes():
-    #         sum_degrees += n.GetOutDeg()
-    #     self.avg_degree = sum_degrees/self.g.GetNodes()
-    #
-    #     avg_spl = 0.0  # average shortest path length
-    #     num_pairs = 0
-    #     for n1 in range(0, self.num_nodes):
-    #         for n2 in range(n1, self.num_nodes):
-    #             num_pairs += 1
-    #             avg_spl += snap.GetShortPath(self.g, n1, n2)
-    #
-    #     self.avg_spl = avg_spl/num_pairs
-    #
-    #     return self
 
 
 def main():
@@ -97,25 +76,21 @@ def main():
         # args: type, num_nodes, num_edges
         er = snap.GenRndGnm(snap.PNGraph, metrics.num_nodes, metrics.num_edges)
         snap.SaveEdgeList(er, "erdos-renyi-{}".format(name))
-        # print (Metrics(er, "erdos-renyi-{}".format(name)).calculate())
 
         # Generate Watts-Strogatz (Small World) Graph
         # args: num_nodes, node_out_degree (average out degree will be twice this value, rewire_prob)
         ws = snap.GenSmallWorld(metrics.num_nodes, int(metrics.avg_degree), 0.5)
-        snap.SaveEdgeList(er, "watts-strogatz-{}".format(name))
-        # print (Metrics(ws, "watts-strogatz-{}".format(name)).calculate())
+        snap.SaveEdgeList(ws, "watts-strogatz-{}".format(name))
 
         # Generate Barabasi-Albert model (scale-free with preferential attachment) Graph
         # args: (num_nodes, degree of each node desired)
         ba = snap.GenPrefAttach(metrics.num_nodes, int(metrics.avg_degree))
-        snap.SaveEdgeList(er, "barabasi-albert-{}".format(name))
-        # print (Metrics(ws, "barabasi-albert-{}".format(name)).calculate())
+        snap.SaveEdgeList(ba, "barabasi-albert-{}".format(name))
 
         # Generate Forest Fire model Graph
         # args: (num_nodes, forward_prob, backward_prob)
         ff = snap.GenForestFire(metrics.num_nodes, 0.2, 0.2)
-        snap.SaveEdgeList(er, "forest-fire-{}".format(name))
-        # print (Metrics(ws, "forest-fire-{}".format(name)).calculate())
+        snap.SaveEdgeList(ff, "forest-fire-{}".format(name))
 
         print "----------"
 
@@ -137,10 +112,6 @@ def main():
         ff_name = "forest-fire-{}".format(name)
         ff = nx.read_edgelist(ff_name)
         print (Metrics(ff, ff_name).calculate())
-
-
-
-
 
 
 if __name__ == "__main__":
