@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 GRAPHS = [
-    "data/USairport_2010.elist.txt",
+    # "data/USairport_2010.elist.txt",
     "data/imdb_actor.elist.txt"
 ]
 
@@ -13,9 +13,10 @@ num_figures = 0  # the number of figures drawn.
 
 
 class Metrics:
-    def __init__(self, g, name):
-        self.name = name
-        self.g = g
+    def __init__(self, path, is_weighted=False):
+        self.name = path.split('/')[-1].split('.')[0]
+        self.g_nx = self.__nx_graph(path, is_weighted)
+        self.g_snap = self.__snap_graph(path)
         self.num_nodes = 0
         self.num_edges = 0
         self.clustering_coeff = 0.0
@@ -24,6 +25,17 @@ class Metrics:
         self.avg_degree = 0.0
         self.avg_spl = 0
         self.diameter = 0.0
+
+    @staticmethod
+    def __snap_graph(path):
+        return snap.LoadEdgeList(snap.PUNGraph, path)
+
+    @staticmethod
+    def __nx_graph(path, is_weighted):
+        if is_weighted:
+            return nx.read_weighted_edgelist(path)
+        else:
+            return nx.read_edgelist(path)
 
     def __str__(self):
         return "Name of Graph: {}\n".format(self.name) \
@@ -38,44 +50,49 @@ class Metrics:
 
     def calculate_spl(self):
         try:
-            avg_spl = nx.average_shortest_path_length(self.g)
+            avg_spl = nx.average_shortest_path_length(self.g_nx)
         except nx.NetworkXError as e:
             print "{}: calculating spl for largest connected component.".format(e)
-            avg_spl = nx.average_shortest_path_length(max(nx.connected_component_subgraphs(self.g), key=len))
+            avg_spl = nx.average_shortest_path_length(max(nx.connected_component_subgraphs(self.g_nx), key=len))
 
         return avg_spl
 
     def calculate_diameter(self):
         try:
-            diam = nx.diameter(self.g)
+            diam = nx.diameter(self.g_nx)
         except nx.NetworkXError as e:
             print "{}: calculating diameter for largest connected component.".format(e)
-            diam = nx.diameter(max(nx.connected_component_subgraphs(self.g), key=len))
+            diam = nx.diameter(max(nx.connected_component_subgraphs(self.g_nx), key=len))
 
         return diam
 
     def calculate(self):
-        self.num_nodes = nx.number_of_nodes(self.g)
-        self.num_edges = nx.number_of_edges(self.g)
+        self.num_nodes = nx.number_of_nodes(self.g_nx)
+        self.num_edges = nx.number_of_edges(self.g_nx)
 
         # Calculate the average degree
         sum_degrees = 0.0
-        for _, d in nx.degree(self.g):
+        for _, d in nx.degree(self.g_nx):
             sum_degrees += d
 
         self.avg_degree = sum_degrees / self.num_nodes
 
-        # print "calculating clustering coefficient."
+        print "calculating clustering coefficient."
         # self.clustering_coeff = nx.clustering(self.g)
+        self.clustering_coeff = snap.GetClustCf(self.g_snap, -1)
 
-        print "calculating transitivity"
-        self.transitivity = nx.transitivity(self.g)
-        #
-        # print "calculating diameter"
-        self.diameter = self.calculate_diameter()
-        #
+        # print "calculating transitivity"
+        # self.transitivity = nx.transitivity(self.g_nx)
+
+        print "calculating triads"
+        self.num_triads = snap.GetTriads(self.g_snap, -1)
+
+        print "calculating diameter"
+        self.diameter = snap.GetBfsFullDiam(self.g_snap, 150, False)
+        # self.diameter = self.calculate_diameter()
+
         # print "calculating spl"
-        self.avg_spl = self.calculate_spl()
+        # self.avg_spl = self.calculate_spl()
 
         return self
 
@@ -146,10 +163,10 @@ def main():
         # g = snap.LoadEdgeList(snap.PUNGraph, path)
         # metrics = Metrics(g, name).calculate()
 
-        g = nx.read_weighted_edgelist(path)
-        metrics = Metrics(g, name).calculate()
-
-        print metrics
+        # g = nx.read_weighted_edgelist(path)
+        # metrics = Metrics(g, name).calculate()
+        #
+        # print metrics
 
         # Generate Erdos-Renyi (Random) Graph
         # args: type, num_nodes, num_edges
@@ -187,37 +204,36 @@ def main():
         # ff = snap.GenForestFire(int(metrics.num_nodes/10), 0.3599, 0.3599)  # Selected value for US Airports data-set
         # snap.SaveEdgeList(ff, "forest-fire-x1-10-{}".format(name))
 
-
-        print "----------"
-
     for path in GRAPHS:
         name = path.split('/')[-1].split('.')[0]
 
         print "***** {}: Generated Graphs *****".format(name)
 
+        # print (Metrics(path, is_weighted=True).calculate())
+        #
         # er_name = "output/{}_er.elist".format(name)
         # # er = nx.read_edgelist(er_name)
-        # # print (Metrics(er, er_name).calculate())
+        # print (Metrics(er_name).calculate())
         #
         # ws_name = "output/{}_ws.elist".format(name)
-        # ws = nx.read_edgelist(ws_name)
-        # print (Metrics(ws, ws_name).calculate())
+        # # ws = nx.read_edgelist(ws_name)
+        # print (Metrics(ws_name).calculate())
         #
         # ba_name = "output/{}_ba.elist".format(name)
-        # ba = nx.read_edgelist(ba_name)
-        # print (Metrics(ba, ba_name).calculate())
+        # # ba = nx.read_edgelist(ba_name)
+        # print (Metrics(ba_name).calculate())
+        #
+        # ff_name = "output/{}_ff.elist".format(name)
+        # # ff = nx.read_edgelist(ff_name)
+        # print (Metrics(ff_name).calculate())
 
-        ff_name = "output/{}_ff.elist".format(name)
-        ff = nx.read_edgelist(ff_name)
-        print (Metrics(ff, ff_name).calculate())
+        # ff_name = "output/{}_ffdiv10.elist".format(name)
+        # print (Metrics(ff_name).calculate())
+        # # ff = nx.read_edgelist(ff_name)
 
         ff_name = "output/{}_ffx10.elist".format(name)
-        ff = nx.read_edgelist(ff_name)
-        print (Metrics(ff, ff_name).calculate())
-
-        ff_name = "output/{}_ffdiv10.elist".format(name)
-        ff = nx.read_edgelist(ff_name)
-        print (Metrics(ff, ff_name).calculate())
+        # ff = nx.read_edgelist(ff_name)
+        print (Metrics(ff_name).calculate())
 
         print "***********************************"
 
