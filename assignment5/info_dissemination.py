@@ -1,6 +1,24 @@
 import networkx as nx
 from numpy.random import choice as rand
 from matplotlib import pyplot as plt
+from abc import ABCMeta, abstractmethod
+
+
+class EpidemicModel:
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def init_graph(self, graph):
+        raise NotImplementedError(
+            'Function init_graph() should initialize the graph with attributes required by the model.')
+
+    @abstractmethod
+    def init_infection(self, graph):
+        raise NotImplementedError('Function init_infection should infect some seed nodes.')
+
+    @abstractmethod
+    def apply(self, node, graph):
+        raise NotImplementedError('Function apply() should update the input node according to the model.')
 
 
 num_figures = 0
@@ -10,14 +28,17 @@ COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']  # colors to use in plots.
 class Simulator:
     MAX_STEPS = 1000
 
-    def __init__(self, g, model):
+    def __init__(self, g, model, name="graph"):
         """
         Simulate the contagion model.
         :param model: contagion model to use
-        :type model: SIRModel
+        :type model: EpidemicModel
         :param g: graph to simulate on
         :type g: nx.Graph
+        :param name: the name of the graph
+        :type name: str
         """
+        self.name = name
         self.model = model
         self.g = model.init_graph(g)
         self.steps_taken = 0
@@ -38,22 +59,28 @@ class Simulator:
         if steps_to_take == -1:
             steps_to_take = self.MAX_STEPS
 
-        for _ in range(steps_to_take):
+        for i in range(steps_to_take):
             self.step()
             if len(self.infected) == 0:
                 print 'No more infections after step: {}'.format(self.steps_taken)
                 break
 
+        self.write_graph(0)
+
         return self.contagion_stats
 
+    def write_graph(self, timestep=0):
+        nx.write_gexf(self.g, "{}-{}.gexf".format(self.name, timestep))
 
-class SIRModel:
+
+class SIRModel(EpidemicModel):
     SUSCEPTIBLE = 0
     INFECTED = 1
     RECOVERED = 2
     LENGTH_OF_INFECTION = 'lof'
     PROB_INFECTION = 'prob_infection'
     STATE = 'state'
+    IS_INFECTED = 'is_infected'
 
     def __init__(self, prob_infection=0.5, length_of_infection=1, reinfection_factor=0.5, num_seeds=1):
         self.prob_infection = prob_infection
@@ -86,8 +113,8 @@ class SIRModel:
 
         def update_susceptible(n):
             attr = graph.node[n]
-            attr[self.STATE] = rand([self.INFECTED, self.SUSCEPTIBLE],
-                                    p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]])
+            attr[self.STATE] = int(rand([self.INFECTED, self.SUSCEPTIBLE],
+                                   p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
             update_infected_list(n)
 
         def update_infected(n):
@@ -112,8 +139,8 @@ class SIRModel:
 
         def update_recovered(n):
             attr = graph.node[n]
-            attr[self.STATE] = rand([self.INFECTED, self.RECOVERED],
-                                    p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]])
+            attr[self.STATE] = int(rand([self.INFECTED, self.RECOVERED],
+                                   p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
             update_infected_list(n)
 
         infected = set()
@@ -162,18 +189,27 @@ def plot(name, grouped_dict, log_scale=False):
     fig.savefig(name)
 
 
+def draw(g, name="graph"):
+    nx.draw(g)
+    plt.savefig("{}.png".format(name), format="PNG")
+
+
 def main():
-    g = nx.erdos_renyi_graph(500, 0.2)
+    num_nodes = 100
+    er = nx.erdos_renyi_graph(n=num_nodes, p=0.2)
 
-    sir = SIRModel(prob_infection=0.02, length_of_infection=2, reinfection_factor=0.5, num_seeds=2)
+    sir = SIRModel(prob_infection=0.02, length_of_infection=3, reinfection_factor=0.5, num_seeds=2)
 
-    simulator = Simulator(g, sir)
+    simulator = Simulator(er, sir, "er")
     simulator.run()
 
     contagion_stats_dict = {'erdos-renyi': simulator.contagion_stats}
 
-    g = nx.watts_strogatz_graph(500, 50, 0.2)
-    contagion_stats_dict['watts-strogatz'] = Simulator(g, sir).run()
+    ws = nx.watts_strogatz_graph(n=num_nodes, k=50, p=0.2)
+    contagion_stats_dict['watts-strogatz'] = Simulator(ws, sir, "ws").run()
+
+    pc = nx.powerlaw_cluster_graph(num_nodes, m=8, p=0.8)
+    contagion_stats_dict['powerlaw-cluster'] = Simulator(pc, sir, "pc").run()
 
     plot('SIRModel', contagion_stats_dict)
 
