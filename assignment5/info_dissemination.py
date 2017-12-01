@@ -53,17 +53,17 @@ class Simulator:
         visited = set()
         self.has_infection = False
 
-        print "\n\n\n---------------Step--------------------"
+        # print "\n\n\n---------------Step--------------------"
 
         # for n in self.infected:
         for n in self.g.nodes():
             if n not in visited:
                 # new_visited, has_infection = self.model.apply(node=n, graph=self.g, step=self.steps_taken)
                 visited, has_infection = self.model.apply(node=n, graph=self.g, visited=visited, step=self.steps_taken)
-                print "New visited: {}".format(visited)
+                # print "New visited: {}".format(visited)
                 # visited.update(new_visited)
                 self.has_infection |= has_infection
-            print "Current node: {}, state {}".format(n, self.g.node[n]['state'][-1][0])
+            # print "Current node: {}, state {}".format(n, self.g.node[n]['state'][-1][0])
             if self.g.node[n]['state'][-1][0] == 1:
                 new_infections.add(n)
 
@@ -109,7 +109,7 @@ class SIRModel(EpidemicModel):
             state = list()
             state.append((self.SUSCEPTIBLE, 0.0, None))
 
-            print "Initial state: {}".format(state)
+            # print "Initial state: {}".format(state)
             graph.node[n][self.STATE] = state
             graph.node[n][self.PROB_INFECTION] = self.prob_infection
             graph.node[n][self.LENGTH_OF_INFECTION] = 0
@@ -137,13 +137,12 @@ class SIRModel(EpidemicModel):
         infected = set(rand(graph.nodes(), size=self.num_seeds))
         for n in infected:
             # graph.node[n][self.STATE] = self.INFECTED
-            print "before infection: {}".format(graph.node[n][self.STATE])
+            # print "before infection: {}".format(graph.node[n][self.STATE])
             graph.node[n][self.STATE][-1] = (self.INFECTED, 0.0, None)
             print "Infecting: {}".format(n)
             print graph.node[n][self.STATE]
 
-        print "Init infection: {}".format(infected)
-        # return graph
+        # print "Init infection: {}".format(infected)
         return infected
 
     def apply(self, node, graph, visited, step=0):
