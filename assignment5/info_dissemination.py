@@ -17,7 +17,7 @@ class EpidemicModel:
         raise NotImplementedError('Function init_infection should infect some seed nodes.')
 
     @abstractmethod
-    def apply(self, node, graph):
+    def apply(self, node, graph, step):
         raise NotImplementedError('Function apply() should update the input node according to the model.')
 
 
@@ -44,16 +44,30 @@ class Simulator:
         self.steps_taken = 0
         self.infected = model.init_infection(g)
         self.contagion_stats = {self.steps_taken: self.infected}
+        self.has_infection = True
 
     def step(self):
         self.steps_taken += 1
         new_infections = set()
 
+        visited = set()
+        self.has_infection = False
+
+        print "\n\n\n---------------Step--------------------"
+
+        # for n in self.infected:
         for n in self.g.nodes():
-            new_infections.update(self.model.apply(n, self.g))
+            if n not in visited:
+                new_visited, has_infection = self.model.apply(node=n, graph=self.g, step=self.steps_taken)
+                print "New visited: {}".format(new_visited)
+                visited.update(new_visited)
+                self.has_infection |= has_infection
+            print "Current node: {}, state {}".format(n, self.g.node[n]['state'][-1][0])
+            if self.g.node[n]['state'][-1][0] == 1:
+                new_infections.add(n)
 
         self.contagion_stats[self.steps_taken] = new_infections
-        self.infected = new_infections
+        # self.infected = new_infections
 
     def run(self, steps_to_take=-1):
         if steps_to_take == -1:
@@ -61,7 +75,8 @@ class Simulator:
 
         for i in range(steps_to_take):
             self.step()
-            if len(self.infected) == 0:
+            # if len(self.infected) == 0:
+            if self.has_infection is False:
                 print 'No more infections after step: {}'.format(self.steps_taken)
                 break
 
@@ -89,39 +104,80 @@ class SIRModel(EpidemicModel):
         self.num_seeds = num_seeds
 
     def init_graph(self, graph):
-        nx.set_node_attributes(graph, self.SUSCEPTIBLE, self.STATE)
-        nx.set_node_attributes(graph, self.prob_infection, self.PROB_INFECTION)
-        nx.set_node_attributes(graph, 0, self.LENGTH_OF_INFECTION)
+        for n in graph.nodes():
+            state = list()
+            state.append((self.SUSCEPTIBLE, 0, None))
+
+            print "Initial state: {}".format(state)
+            graph.node[n][self.STATE] = state
+            graph.node[n][self.PROB_INFECTION] = self.prob_infection
+            graph.node[n][self.LENGTH_OF_INFECTION] = 0
+
+            # nx.set_node_attributes(graph, state, self.STATE)
+            # nx.set_node_attributes(graph, self.prob_infection, self.PROB_INFECTION)
+            # nx.set_node_attributes(graph, 0, self.LENGTH_OF_INFECTION)
 
         return graph
+
+    # def init_graph(self, graph):
+    #     state = list()
+    #     state.append((self.SUSCEPTIBLE, None, None))
+    #
+    #     print "Initial state: {}".format(state)
+    #
+    #     nx.set_node_attributes(graph, state, self.STATE)
+    #     nx.set_node_attributes(graph, self.prob_infection, self.PROB_INFECTION)
+    #     nx.set_node_attributes(graph, 0, self.LENGTH_OF_INFECTION)
+    #
+    #     return graph
         # return self.init_infection(graph)
 
     def init_infection(self, graph):
         infected = set(rand(graph.nodes(), size=self.num_seeds))
         for n in infected:
-            graph.node[n][self.STATE] = self.INFECTED
+            # graph.node[n][self.STATE] = self.INFECTED
+            print "before infection: {}".format(graph.node[n][self.STATE])
+            graph.node[n][self.STATE][-1] = (self.INFECTED, 0, None)
+            print "Infecting: {}".format(n)
+            print graph.node[n][self.STATE]
 
         print "Init infection: {}".format(infected)
         # return graph
         return infected
 
-    def apply(self, node, graph):
-        def update_infected_list(n):
+    def apply(self, node, graph, step=0):
+        def update_visited_list(n):
+            visited.add(n)
             attr = graph.node[n]
-            if attr[self.STATE] == self.INFECTED:
-                infected.add(n)
+            if attr[self.STATE][-1][0] == self.INFECTED:
+                return True
+            else:
+                return False
 
         def update_susceptible(n):
             attr = graph.node[n]
-            attr[self.STATE] = int(rand([self.INFECTED, self.SUSCEPTIBLE],
-                                   p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
-            update_infected_list(n)
+            new_state = int(rand([self.INFECTED, self.SUSCEPTIBLE],
+                            p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
+
+            if new_state == self.INFECTED:
+                # Update the end time for previous state
+                last_state = attr[self.STATE][-1]
+                attr[self.STATE][-1] = (last_state[0], last_state[1], step - 1)
+                # Add a new state
+                attr[self.STATE].append((self.INFECTED, step, None))
 
         def update_infected(n):
             attr = graph.node[n]
             # print "Updating infected"
+            new_infection = False
             if attr[self.LENGTH_OF_INFECTION] == self.length_of_infection:
-                attr[self.STATE] = self.RECOVERED
+                # Update the end time for previous state
+                last_state = attr[self.STATE][-1]
+                # last_state[2] = step
+                attr[self.STATE][-1] = (last_state[0], last_state[1], step-1)
+                # Add a new state
+                attr[self.STATE].append((self.RECOVERED, step, None))
+                # Update other attributes
                 attr[self.LENGTH_OF_INFECTION] = 0
                 attr[self.PROB_INFECTION] *= self.reinfection_factor
             else:
@@ -130,32 +186,53 @@ class SIRModel(EpidemicModel):
                 # iterate over adjacent nodes of node in graph.
                 for neighbor in graph.neighbors(node):
                     a = graph.node[neighbor]
-                    # print "neighbor : {}, attr: {}".format(neighbor, a)
-                    if a[self.STATE] == self.SUSCEPTIBLE:
+                    # print "current node: {}, neighbor : {}, attr: {}".format(n, neighbor, a)
+                    if a[self.STATE][-1][0] == self.SUSCEPTIBLE:
                         update_susceptible(neighbor)
-                    elif a[self.STATE] == self.RECOVERED:
+                    elif a[self.STATE][-1][0] == self.RECOVERED:
                         update_recovered(neighbor)
-            update_infected_list(n)
+                        new_infection = update_visited_list(neighbor)
+
+            return new_infection
 
         def update_recovered(n):
             attr = graph.node[n]
-            attr[self.STATE] = int(rand([self.INFECTED, self.RECOVERED],
-                                   p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
-            update_infected_list(n)
+            new_state = int(rand([self.INFECTED, self.RECOVERED],
+                                 p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
+            if new_state == self.INFECTED:
+                # Update the end time for previous state
+                last_state = attr[self.STATE][-1]
+                # last_state[2] = step
+                attr[self.STATE][-1] = (last_state[0], last_state[1], step-1)
+                # Add a new state
+                attr[self.STATE].append((self.INFECTED, step, None))
 
-        infected = set()
+        visited = set()
+        has_infection = False
+
+        # if step == 1:
+        #     print "-----------INFECTED----------------"
+        #     print visited
 
         node_attr = graph.node[node]
 
         # print "Node: {}, attr: {}".format(node, node_attr)
-        if node_attr[self.STATE] == self.INFECTED:
+        # print "attr: {}".format(node_attr[self.STATE][-1][0])
+
+        if node_attr[self.STATE][-1][0] == self.INFECTED:
             # print "Infected Node: {}".format(node_attr)
-            update_infected(node)
-        elif node_attr[self.STATE] == self.RECOVERED:
+            has_infection |= update_infected(node)
+        elif node_attr[self.STATE][-1][0] == self.RECOVERED:
             # print "Recovered Node: {}".format(node_attr)
             update_recovered(node)
 
-        return infected
+        has_infection |= update_visited_list(node)
+
+        # if step == 1:
+        #     print "-----------INFECTED end----------------"
+        #     print visited
+
+        return visited, has_infection
 
 
 def plot(name, grouped_dict, log_scale=False):
@@ -205,11 +282,11 @@ def main():
 
     contagion_stats_dict = {'erdos-renyi': simulator.contagion_stats}
 
-    ws = nx.watts_strogatz_graph(n=num_nodes, k=50, p=0.2)
-    contagion_stats_dict['watts-strogatz'] = Simulator(ws, sir, "ws").run()
-
-    pc = nx.powerlaw_cluster_graph(num_nodes, m=8, p=0.8)
-    contagion_stats_dict['powerlaw-cluster'] = Simulator(pc, sir, "pc").run()
+    # ws = nx.watts_strogatz_graph(n=num_nodes, k=50, p=0.2)
+    # contagion_stats_dict['watts-strogatz'] = Simulator(ws, sir, "ws").run()
+    #
+    # pc = nx.powerlaw_cluster_graph(num_nodes, m=8, p=0.8)
+    # contagion_stats_dict['powerlaw-cluster'] = Simulator(pc, sir, "pc").run()
 
     plot('SIRModel', contagion_stats_dict)
 
