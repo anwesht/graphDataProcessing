@@ -53,22 +53,14 @@ class Simulator:
         visited = set()
         self.has_infection = False
 
-        # print "\n\n\n---------------Step--------------------"
-
-        # for n in self.infected:
         for n in self.g.nodes():
             if n not in visited:
-                # new_visited, has_infection = self.model.apply(node=n, graph=self.g, step=self.steps_taken)
                 visited, has_infection = self.model.apply(node=n, graph=self.g, visited=visited, step=self.steps_taken)
-                # print "New visited: {}".format(visited)
-                # visited.update(new_visited)
                 self.has_infection |= has_infection
-            # print "Current node: {}, state {}".format(n, self.g.node[n]['state'][-1][0])
             if self.g.node[n]['state'][-1][0] == 1:
                 new_infections.add(n)
 
         self.contagion_stats[self.steps_taken] = new_infections
-        # self.infected = new_infections
 
     def run(self, steps_to_take=-1):
         if steps_to_take == -1:
@@ -76,7 +68,6 @@ class Simulator:
 
         for i in range(steps_to_take):
             self.step()
-            # if len(self.infected) == 0:
             if self.has_infection is False:
                 print 'No more infections after step: {}'.format(self.steps_taken)
                 break
@@ -114,35 +105,15 @@ class SIRModel(EpidemicModel):
             graph.node[n][self.PROB_INFECTION] = self.prob_infection
             graph.node[n][self.LENGTH_OF_INFECTION] = 0
 
-            # nx.set_node_attributes(graph, state, self.STATE)
-            # nx.set_node_attributes(graph, self.prob_infection, self.PROB_INFECTION)
-            # nx.set_node_attributes(graph, 0, self.LENGTH_OF_INFECTION)
-
         return graph
-
-    # def init_graph(self, graph):
-    #     state = list()
-    #     state.append((self.SUSCEPTIBLE, None, None))
-    #
-    #     print "Initial state: {}".format(state)
-    #
-    #     nx.set_node_attributes(graph, state, self.STATE)
-    #     nx.set_node_attributes(graph, self.prob_infection, self.PROB_INFECTION)
-    #     nx.set_node_attributes(graph, 0, self.LENGTH_OF_INFECTION)
-    #
-    #     return graph
-        # return self.init_infection(graph)
 
     def init_infection(self, graph):
         infected = set(rand(graph.nodes(), size=self.num_seeds))
         for n in infected:
-            # graph.node[n][self.STATE] = self.INFECTED
-            # print "before infection: {}".format(graph.node[n][self.STATE])
             graph.node[n][self.STATE][-1] = (self.INFECTED, 0.0, None)
             print "Infecting: {}".format(n)
             print graph.node[n][self.STATE]
 
-        # print "Init infection: {}".format(infected)
         return infected
 
     def apply(self, node, graph, visited, step=0):
@@ -168,7 +139,6 @@ class SIRModel(EpidemicModel):
 
         def update_infected(n):
             attr = graph.node[n]
-            # print "Updating infected"
             new_infection = False
             if attr[self.LENGTH_OF_INFECTION] == self.length_of_infection:
                 # Update the end time for previous state
@@ -181,15 +151,14 @@ class SIRModel(EpidemicModel):
                 attr[self.PROB_INFECTION] *= self.reinfection_factor
             else:
                 attr[self.LENGTH_OF_INFECTION] += 1
-
                 # iterate over adjacent nodes of node in graph.
                 for neighbor in graph.neighbors(node):
                     a = graph.node[neighbor]
                     # print "current node: {}, neighbor : {}, attr: {}".format(n, neighbor, a)
                     if a[self.STATE][-1][0] == self.SUSCEPTIBLE:
                         update_susceptible(neighbor)
-                    # elif a[self.STATE][-1][0] == self.RECOVERED:
                     elif a[self.STATE][-1][0] == self.RECOVERED and neighbor not in visited:
+                        # check to avoid recovery and reinfection in same time step.
                         update_recovered(neighbor)
 
                     new_infection |= update_visited_list(neighbor)
@@ -207,30 +176,15 @@ class SIRModel(EpidemicModel):
                 # Add a new state
                 attr[self.STATE].append((self.INFECTED, step, None))
 
-        # visited = set()
         has_infection = False
-
-        # if step == 1:
-        #     print "-----------INFECTED----------------"
-        #     print visited
-
         node_attr = graph.node[node]
 
-        # print "Node: {}, attr: {}".format(node, node_attr)
-        # print "attr: {}".format(node_attr[self.STATE][-1][0])
-
         if node_attr[self.STATE][-1][0] == self.INFECTED:
-            # print "Infected Node: {}".format(node_attr)
             has_infection |= update_infected(node)
         elif node_attr[self.STATE][-1][0] == self.RECOVERED:
-            # print "Recovered Node: {}".format(node_attr)
             update_recovered(node)
 
         has_infection |= update_visited_list(node)
-
-        # if step == 1:
-        #     print "-----------INFECTED end----------------"
-        #     print visited
 
         return visited, has_infection
 
