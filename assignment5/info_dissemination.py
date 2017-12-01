@@ -17,7 +17,7 @@ class EpidemicModel:
         raise NotImplementedError('Function init_infection should infect some seed nodes.')
 
     @abstractmethod
-    def apply(self, node, graph, step):
+    def apply(self, node, graph, visited, step):
         raise NotImplementedError('Function apply() should update the input node according to the model.')
 
 
@@ -58,9 +58,10 @@ class Simulator:
         # for n in self.infected:
         for n in self.g.nodes():
             if n not in visited:
-                new_visited, has_infection = self.model.apply(node=n, graph=self.g, step=self.steps_taken)
-                print "New visited: {}".format(new_visited)
-                visited.update(new_visited)
+                # new_visited, has_infection = self.model.apply(node=n, graph=self.g, step=self.steps_taken)
+                visited, has_infection = self.model.apply(node=n, graph=self.g, visited=visited, step=self.steps_taken)
+                print "New visited: {}".format(visited)
+                # visited.update(new_visited)
                 self.has_infection |= has_infection
             print "Current node: {}, state {}".format(n, self.g.node[n]['state'][-1][0])
             if self.g.node[n]['state'][-1][0] == 1:
@@ -145,7 +146,7 @@ class SIRModel(EpidemicModel):
         # return graph
         return infected
 
-    def apply(self, node, graph, step=0):
+    def apply(self, node, graph, visited, step=0):
         def update_visited_list(n):
             visited.add(n)
             attr = graph.node[n]
@@ -188,9 +189,11 @@ class SIRModel(EpidemicModel):
                     # print "current node: {}, neighbor : {}, attr: {}".format(n, neighbor, a)
                     if a[self.STATE][-1][0] == self.SUSCEPTIBLE:
                         update_susceptible(neighbor)
-                    elif a[self.STATE][-1][0] == self.RECOVERED:
+                    # elif a[self.STATE][-1][0] == self.RECOVERED:
+                    elif a[self.STATE][-1][0] == self.RECOVERED and neighbor not in visited:
                         update_recovered(neighbor)
-                        new_infection = update_visited_list(neighbor)
+
+                    new_infection |= update_visited_list(neighbor)
 
             return new_infection
 
@@ -201,12 +204,11 @@ class SIRModel(EpidemicModel):
             if new_state == self.INFECTED:
                 # Update the end time for previous state
                 last_state = attr[self.STATE][-1]
-                # last_state[2] = step
                 attr[self.STATE][-1] = (last_state[0], last_state[1], step-1)
                 # Add a new state
                 attr[self.STATE].append((self.INFECTED, step, None))
 
-        visited = set()
+        # visited = set()
         has_infection = False
 
         # if step == 1:
@@ -281,11 +283,11 @@ def main():
 
     contagion_stats_dict = {'erdos-renyi': simulator.contagion_stats}
 
-    # ws = nx.watts_strogatz_graph(n=num_nodes, k=50, p=0.2)
-    # contagion_stats_dict['watts-strogatz'] = Simulator(ws, sir, "ws").run()
-    #
-    # pc = nx.powerlaw_cluster_graph(num_nodes, m=8, p=0.8)
-    # contagion_stats_dict['powerlaw-cluster'] = Simulator(pc, sir, "pc").run()
+    ws = nx.watts_strogatz_graph(n=num_nodes, k=5, p=0.2)
+    contagion_stats_dict['watts-strogatz'] = Simulator(ws, sir, "ws").run()
+
+    pc = nx.powerlaw_cluster_graph(num_nodes, m=5, p=0.2)
+    contagion_stats_dict['powerlaw-cluster'] = Simulator(pc, sir, "pc").run()
 
     plot('SIRModel', contagion_stats_dict)
 
