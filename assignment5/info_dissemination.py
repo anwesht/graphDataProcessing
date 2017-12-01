@@ -41,7 +41,7 @@ class Simulator:
         self.name = name
         self.model = model
         self.g = model.init_graph(g)
-        self.steps_taken = 0
+        self.steps_taken = 0.0
         self.infected = model.init_infection(g)
         self.contagion_stats = {self.steps_taken: self.infected}
         self.has_infection = True
@@ -106,7 +106,7 @@ class SIRModel(EpidemicModel):
     def init_graph(self, graph):
         for n in graph.nodes():
             state = list()
-            state.append((self.SUSCEPTIBLE, 0, None))
+            state.append((self.SUSCEPTIBLE, 0.0, None))
 
             print "Initial state: {}".format(state)
             graph.node[n][self.STATE] = state
@@ -137,7 +137,7 @@ class SIRModel(EpidemicModel):
         for n in infected:
             # graph.node[n][self.STATE] = self.INFECTED
             print "before infection: {}".format(graph.node[n][self.STATE])
-            graph.node[n][self.STATE][-1] = (self.INFECTED, 0, None)
+            graph.node[n][self.STATE][-1] = (self.INFECTED, 0.0, None)
             print "Infecting: {}".format(n)
             print graph.node[n][self.STATE]
 
@@ -173,7 +173,6 @@ class SIRModel(EpidemicModel):
             if attr[self.LENGTH_OF_INFECTION] == self.length_of_infection:
                 # Update the end time for previous state
                 last_state = attr[self.STATE][-1]
-                # last_state[2] = step
                 attr[self.STATE][-1] = (last_state[0], last_state[1], step-1)
                 # Add a new state
                 attr[self.STATE].append((self.RECOVERED, step, None))
