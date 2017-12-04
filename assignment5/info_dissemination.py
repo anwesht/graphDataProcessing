@@ -3,6 +3,7 @@ import sys
 from numpy.random import choice as rand
 from matplotlib import pyplot as plt
 from abc import ABCMeta, abstractmethod
+from pprint import pprint
 
 
 class EpidemicModel:
@@ -44,10 +45,16 @@ class Simulator:
         self.g = model.init_graph(g)
         self.steps_taken = 0.0
         self.infected = model.init_infection(g, selection_strategy=seed_selection)
-        self.contagion_stats = {self.steps_taken: self.infected}
+        # print "Number of initial Infection: {}".format(len(self.infected))
+        self.contagion_stats = {self.steps_taken: set(self.infected)}
         self.has_infection = True
+        self.metrics = dict()
 
     def step(self):
+        """
+        Execute one step of the simulation
+        :return: void
+        """
         self.steps_taken += 1
         new_infections = set()
 
@@ -60,11 +67,18 @@ class Simulator:
                 self.has_infection |= has_infection
             if self.g.node[n]['state'][-1][0] == 1:
                 self.has_infection = True
+                self.infected.add(n)
                 new_infections.add(n)
 
         self.contagion_stats[self.steps_taken] = new_infections
 
     def run(self, steps_to_take=-1):
+        """
+        Executes the simulation.
+        :param steps_to_take: number of steps to simulate.
+                              if -1, simulates till the epidemic dies off.
+        :return: self
+        """
         if steps_to_take == -1:
             steps_to_take = self.MAX_STEPS
 
@@ -75,8 +89,28 @@ class Simulator:
                 break
 
         self.write_graph(0)
+        self.calculate_metrics()
+        # return self.contagion_stats
+        return self
 
-        return self.contagion_stats
+    def calculate_metrics(self):
+        """
+        Calculate the metrics on epidemic model
+        :return: void
+        """
+        length_of_epidemic = self.steps_taken
+        num_nodes_infected = len(self.infected)
+        time_of_max_infection, max_infections_at_a_time = max([(t, len(v)) for t, v in self.contagion_stats.items()],
+                                                            key=lambda tup: tup[1])
+
+        self.metrics = {
+            'length_of_epidemic': length_of_epidemic,
+            'num_nodes_infected': num_nodes_infected,
+            'time_of_max_infection': time_of_max_infection,
+            'max_infections_at_a_time': max_infections_at_a_time,
+            'num_nodes': self.g.number_of_nodes(),
+            'num_edges': self.g.number_of_edges()
+        }
 
     def write_graph(self, timestep=0):
         nx.write_gexf(self.g, "{}-{}.gexf".format(self.name, timestep))
@@ -92,12 +126,28 @@ class SIRModel(EpidemicModel):
     IS_INFECTED = 'is_infected'
 
     def __init__(self, prob_infection=0.5, length_of_infection=1, reinfection_factor=0.5, num_seeds=1):
+        """
+        Initialize the SIR Model.
+        :param prob_infection: Probability that a susceptible node is infected by an infected neighbour.
+        :param length_of_infection: The number of time steps the infection lasts
+        :param reinfection_factor: The factor by which the probability of infection decreases after
+                                   the previous infection.
+        :param num_seeds: The number of nodes to infect at the beginning.
+        """
         self.prob_infection = prob_infection
         self.length_of_infection = length_of_infection
         self.reinfection_factor = reinfection_factor
         self.num_seeds = num_seeds
 
     def init_graph(self, graph):
+        """
+        Initialize the graph with node attributes required to track the changes of
+        node attributes over time.
+        :param graph: The graph on which to apply the SIRModel
+        :type graph: nx.Graph
+        :return: a set of infected nodes.
+        :rtype: set[int]
+        """
         for n in graph.nodes():
             state = list()
             state.append((self.SUSCEPTIBLE, 0.0, None))
@@ -110,6 +160,14 @@ class SIRModel(EpidemicModel):
         return graph
 
     def init_infection(self, graph, selection_strategy):
+        """
+        Initialize infections
+        :param graph: The graph on which to apply the SIRModel
+        :type graph: nx.Graph
+        :param selection_strategy: the strategy to use to select infected nodes
+        :return: a set of infected nodes.
+        :rtype: set[int]
+        """
         if selection_strategy == 'max_deg':
             return self.init_infection_degree(graph, is_max=True)
         elif selection_strategy == 'min_deg':
@@ -118,14 +176,29 @@ class SIRModel(EpidemicModel):
             return self.init_infection_rand(graph)
 
     def init_infection_rand(self, graph):
+        """
+        Initialize random nodes as infected.
+        :param graph: The graph on which to apply the SIRModel
+        :type graph: nx.Graph
+        :return: a set of infected nodes.
+        :rtype: set[int]
+        """
         infected = set(rand(graph.nodes(), size=self.num_seeds))
         for n in infected:
             graph.node[n][self.STATE][-1] = (self.INFECTED, 0.0, None)
-            print "Infecting: {}".format(n)
-            print graph.node[n][self.STATE]
+            # print "Infecting: {}".format(n)
+            # print graph.node[n][self.STATE]
         return infected
 
     def init_infection_degree(self, graph, is_max=True):
+        """
+        Initialize nodes as infected based on degree
+        :param graph: The graph on which to apply the SIRModel
+        :type graph: nx.Graph
+        :param is_max: boolean to pick minimum or maximum degree
+        :return: a set of infected nodes.
+        :rtype: set[int]
+        """
         def get_index(index):
             if is_max:
                 return -1-index
@@ -136,19 +209,26 @@ class SIRModel(EpidemicModel):
         degree_dict = sorted(dict(degree_dict).iteritems(), key=lambda (k, v): (v, k))
 
         # print degree_dict
-        infected = []
+        infected = set()
         for i in range(self.num_seeds):
             n, _ = degree_dict[get_index(i)]
-            infected.append(n)
+            infected.add(n)
 
             graph.node[n][self.STATE][-1] = (self.INFECTED, 0.0, None)
-            print "Infecting: {} with degree: {}".format(n, graph.degree(n))
-            print graph.node[n][self.STATE]
+            # print "Infecting: {} with degree: {}".format(n, graph.degree(n))
+            # print graph.node[n][self.STATE]
 
         return infected
 
     def apply(self, node, graph, visited, step=0):
         def update_visited_list(n):
+            """
+            Update a set of visited nodes. This set is used to keep track of the nodes already
+            visited in this time step, so that it is not updated multiple times.
+            :param n: the node to add to visited set
+            :return: True if n is infected otherwise False
+            :rtype: boolean
+            """
             visited.add(n)
             attr = graph.node[n]
             if attr[self.STATE][-1][0] == self.INFECTED:
@@ -157,6 +237,11 @@ class SIRModel(EpidemicModel):
                 return False
 
         def update_susceptible(n):
+            """
+            Calculate the new state of a susceptible node.
+            :param n: the susceptible node to update
+            :return: void
+            """
             attr = graph.node[n]
             new_state = int(rand([self.INFECTED, self.SUSCEPTIBLE],
                             p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
@@ -169,6 +254,13 @@ class SIRModel(EpidemicModel):
                 attr[self.STATE].append((self.INFECTED, step, None))
 
         def update_infected(n):
+            """
+            Calculate the new state of the infected node n.
+            Also simulate the infection of neighbouring susceptible nodes.
+            :param n: infected node to update
+            :return: a set of newly infected nodes
+            :rtype: set[int]
+            """
             attr = graph.node[n]
             new_infection = False
             if attr[self.LENGTH_OF_INFECTION] == self.length_of_infection:
@@ -197,6 +289,11 @@ class SIRModel(EpidemicModel):
             return new_infection
 
         def update_recovered(n):
+            """
+            Calculate the new state of recovered nodes.
+            :param n: recovered node to update
+            :return: void
+            """
             attr = graph.node[n]
             new_state = int(rand([self.INFECTED, self.RECOVERED],
                                  p=[attr[self.PROB_INFECTION], 1 - attr[self.PROB_INFECTION]]))
@@ -221,6 +318,13 @@ class SIRModel(EpidemicModel):
 
 
 def plot(name, grouped_dict, log_scale=False):
+    """
+    Plots the number of infections vs time graph
+    :param name: Name of the graph
+    :param grouped_dict: a dictionary of dictionaroes with data to plot
+    :param log_scale: boolean to use log scale.
+    :return: void
+    """
     global num_figures
 
     fig = plt.figure(num_figures)
@@ -257,6 +361,10 @@ def draw(g, name="graph"):
 
 
 def generate_graphs():
+    """
+    Generates the graphs to use for the experiments.
+    :return: void
+    """
     num_nodes = 100
     er = nx.erdos_renyi_graph(n=num_nodes, p=0.07)  # Graph generated using these parameters
     nx.write_edgelist(er, 'er-avg_deg-6.elist.txt')
@@ -267,10 +375,15 @@ def generate_graphs():
 
 
 def experiment():
+    """
+    Simulate the SIR epidemic model for a number of parameters.
+    :return: void
+    """
     prob_infection = [0.02, 0.2, 0.8]
     seed_selection = ['rand', 'max_deg', 'min_deg']
     reinfection_factor = [0.5, 0.0]
 
+    # Read the input graphs
     er = nx.read_edgelist('data/er-avg_deg-6.elist.txt')
     ws = nx.read_edgelist('data/ws-avg_deg-6.elist.txt')
     pc = nx.read_edgelist('data/pc-avg_deg-6.elist.txt')
@@ -281,19 +394,36 @@ def experiment():
                 sir = SIRModel(prob_infection=p, length_of_infection=3,
                                reinfection_factor=r, num_seeds=2)
 
-                simulator = Simulator(er, sir, "er-p-{}-ss-{}".format(p, ss), seed_selection=ss)
-                simulator.run()
+                er_sim = Simulator(er, sir, "er-p-{}-ss-{}-r-{}".format(p, ss, r), seed_selection=ss).run()
+                ws_sim = Simulator(ws, sir, "ws-p-{}-ss-{}-r-{}".format(p, ss, r), seed_selection=ss).run()
+                plc_sim = Simulator(pc, sir, "pc-p-{}-ss-{}-r-{}".format(p, ss, r), seed_selection=ss).run()
 
                 contagion_stats_dict = {
-                    'erdos-renyi': Simulator(er, sir, "er-p-{}-ss-{}-r-{}".format(p, ss, r),
-                                             seed_selection=ss).run(),
-                    'watts-strogatz': Simulator(ws, sir, "ws-p-{}-ss-{}-r-{}".format(p, ss, r),
-                                                seed_selection=ss).run(),
-                    'powerlaw-cluster': Simulator(pc, sir, "pc-p-{}-ss-{}-r-{}".format(p, ss, r),
-                                                  seed_selection=ss).run()
+                    'erdos-renyi': er_sim.contagion_stats,
+                    'watts-strogatz': ws_sim.contagion_stats,
+                    'powerlaw-cluster': plc_sim.contagion_stats
                 }
 
                 plot('SIRModel-p-{}-ss-{}-r-{}'.format(p, ss, r), contagion_stats_dict)
+
+                avg_metrics = {
+                    'erdos-renyi': er_sim.metrics,
+                    'watts-strogatz': ws_sim.metrics,
+                    'powerlaw-cluster': plc_sim.metrics
+                }
+
+                for i in range(10):
+                    er_sim = Simulator(er, sir, "er-p-{}-ss-{}-r-{}".format(p, ss, r), seed_selection=ss).run()
+                    ws_sim = Simulator(ws, sir, "ws-p-{}-ss-{}-r-{}".format(p, ss, r), seed_selection=ss).run()
+                    plc_sim = Simulator(pc, sir, "pc-p-{}-ss-{}-r-{}".format(p, ss, r), seed_selection=ss).run()
+
+                    for metric in er_sim.metrics.keys():
+                        avg_metrics['erdos-renyi'][metric] = float((avg_metrics['erdos-renyi'][metric] + er_sim.metrics[metric])) / 2
+                        avg_metrics['watts-strogatz'][metric] = float((avg_metrics['watts-strogatz'][metric] + ws_sim.metrics[metric])) / 2
+                        avg_metrics['powerlaw-cluster'][metric] = float((avg_metrics['powerlaw-cluster'][metric] + plc_sim.metrics[metric])) / 2
+
+                print "Average metrics for: p: {}, ss: {}, r: {}".format(p, ss, r)
+                pprint(avg_metrics)
 
 
 def main(argv):
