@@ -1,4 +1,5 @@
 import networkx as nx
+import sys
 from numpy.random import choice as rand
 from matplotlib import pyplot as plt
 from abc import ABCMeta, abstractmethod
@@ -13,7 +14,7 @@ class EpidemicModel:
             'Function init_graph() should initialize the graph with attributes required by the model.')
 
     @abstractmethod
-    def init_infection(self, graph):
+    def init_infection(self, graph, selection_strategy):
         raise NotImplementedError('Function init_infection should infect some seed nodes.')
 
     @abstractmethod
@@ -28,7 +29,7 @@ COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']  # colors to use in plots.
 class Simulator:
     MAX_STEPS = 1000
 
-    def __init__(self, g, model, name="graph"):
+    def __init__(self, g, model, name="graph", seed_selection='rand'):
         """
         Simulate the contagion model.
         :param model: contagion model to use
@@ -42,7 +43,7 @@ class Simulator:
         self.model = model
         self.g = model.init_graph(g)
         self.steps_taken = 0.0
-        self.infected = model.init_infection(g)
+        self.infected = model.init_infection(g, selection_strategy=seed_selection)
         self.contagion_stats = {self.steps_taken: self.infected}
         self.has_infection = True
 
@@ -58,6 +59,7 @@ class Simulator:
                 visited, has_infection = self.model.apply(node=n, graph=self.g, visited=visited, step=self.steps_taken)
                 self.has_infection |= has_infection
             if self.g.node[n]['state'][-1][0] == 1:
+                self.has_infection = True
                 new_infections.add(n)
 
         self.contagion_stats[self.steps_taken] = new_infections
@@ -107,11 +109,40 @@ class SIRModel(EpidemicModel):
 
         return graph
 
-    def init_infection(self, graph):
+    def init_infection(self, graph, selection_strategy):
+        if selection_strategy == 'max_deg':
+            return self.init_infection_degree(graph, is_max=True)
+        elif selection_strategy == 'min_deg':
+            return self.init_infection_degree(graph, is_max=False)
+        else:
+            return self.init_infection_rand(graph)
+
+    def init_infection_rand(self, graph):
         infected = set(rand(graph.nodes(), size=self.num_seeds))
         for n in infected:
             graph.node[n][self.STATE][-1] = (self.INFECTED, 0.0, None)
             print "Infecting: {}".format(n)
+            print graph.node[n][self.STATE]
+        return infected
+
+    def init_infection_degree(self, graph, is_max=True):
+        def get_index(index):
+            if is_max:
+                return -1-index
+            else:
+                return index
+
+        degree_dict = nx.degree(graph)
+        degree_dict = sorted(dict(degree_dict).iteritems(), key=lambda (k, v): (v, k))
+
+        # print degree_dict
+        infected = []
+        for i in range(self.num_seeds):
+            n, _ = degree_dict[get_index(i)]
+            infected.append(n)
+
+            graph.node[n][self.STATE][-1] = (self.INFECTED, 0.0, None)
+            print "Infecting: {} with degree: {}".format(n, graph.degree(n))
             print graph.node[n][self.STATE]
 
         return infected
@@ -217,7 +248,7 @@ def plot(name, grouped_dict, log_scale=False):
         i = (i + 1) % len(COLORS)
 
     ax.legend(loc='best')
-    fig.savefig(name)
+    fig.savefig("{}.png".format(name), format="PNG")
 
 
 def draw(g, name="graph"):
@@ -225,25 +256,55 @@ def draw(g, name="graph"):
     plt.savefig("{}.png".format(name), format="PNG")
 
 
-def main():
+def generate_graphs():
     num_nodes = 100
-    er = nx.erdos_renyi_graph(n=num_nodes, p=0.2)
+    er = nx.erdos_renyi_graph(n=num_nodes, p=0.07)  # Graph generated using these parameters
+    nx.write_edgelist(er, 'er-avg_deg-6.elist.txt')
+    ws = nx.watts_strogatz_graph(n=num_nodes, k=6, p=0.2)  # Graph generated using these parameters
+    nx.write_edgelist(ws, 'ws-avg_deg-6.elist.txt')
+    pc = nx.powerlaw_cluster_graph(num_nodes, m=3, p=0.45)  # Graph generated using these parameters
+    nx.write_edgelist(pc, 'pc-avg_deg-6.elist.txt')
 
-    sir = SIRModel(prob_infection=0.02, length_of_infection=3, reinfection_factor=0.5, num_seeds=2)
 
-    simulator = Simulator(er, sir, "er")
-    simulator.run()
+def experiment():
+    prob_infection = [0.02, 0.2, 0.8]
+    seed_selection = ['rand', 'max_deg', 'min_deg']
+    reinfection_factor = [0.5, 0.0]
 
-    contagion_stats_dict = {'erdos-renyi': simulator.contagion_stats}
+    er = nx.read_edgelist('data/er-avg_deg-6.elist.txt')
+    ws = nx.read_edgelist('data/ws-avg_deg-6.elist.txt')
+    pc = nx.read_edgelist('data/pc-avg_deg-6.elist.txt')
 
-    ws = nx.watts_strogatz_graph(n=num_nodes, k=5, p=0.2)
-    contagion_stats_dict['watts-strogatz'] = Simulator(ws, sir, "ws").run()
+    for p in prob_infection:
+        for ss in seed_selection:
+            for r in reinfection_factor:
+                sir = SIRModel(prob_infection=p, length_of_infection=3,
+                               reinfection_factor=r, num_seeds=2)
 
-    pc = nx.powerlaw_cluster_graph(num_nodes, m=5, p=0.2)
-    contagion_stats_dict['powerlaw-cluster'] = Simulator(pc, sir, "pc").run()
+                simulator = Simulator(er, sir, "er-p-{}-ss-{}".format(p, ss), seed_selection=ss)
+                simulator.run()
 
-    plot('SIRModel', contagion_stats_dict)
+                contagion_stats_dict = {
+                    'erdos-renyi': Simulator(er, sir, "er-p-{}-ss-{}-r-{}".format(p, ss, r),
+                                             seed_selection=ss).run(),
+                    'watts-strogatz': Simulator(ws, sir, "ws-p-{}-ss-{}-r-{}".format(p, ss, r),
+                                                seed_selection=ss).run(),
+                    'powerlaw-cluster': Simulator(pc, sir, "pc-p-{}-ss-{}-r-{}".format(p, ss, r),
+                                                  seed_selection=ss).run()
+                }
+
+                plot('SIRModel-p-{}-ss-{}-r-{}'.format(p, ss, r), contagion_stats_dict)
+
+
+def main(argv):
+    if argv == 'gen':
+        generate_graphs()
+    elif argv == 'experiment':
+        experiment()
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 2:
+        main(sys.argv[1])
+    else:
+        main('experiment')
