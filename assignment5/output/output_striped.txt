@@ -1,0 +1,381 @@
+/Users/atuladhar/virtualenv/networkx2/bin/python /Users/atuladhar/projects/graphDataProcessing/assignment5/info_dissemination.py
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.02, ss: rand, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 7.431640625,
+                 'max_infections_at_a_time': 2.638671875,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 3.1533203125,
+                 'time_of_max_infection': 1.1474609375},
+ 'powerlaw-cluster': {'length_of_epidemic': 4.0703125,
+                      'max_infections_at_a_time': 2.03125,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 2.03125,
+                      'time_of_max_infection': 0.046875},
+ 'watts-strogatz': {'length_of_epidemic': 6.3876953125,
+                    'max_infections_at_a_time': 2.787109375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 2.7958984375,
+                    'time_of_max_infection': 2.3037109375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.02, ss: rand, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 9.466796875,
+                 'max_infections_at_a_time': 3.349609375,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 4.248046875,
+                 'time_of_max_infection': 3.900390625},
+ 'powerlaw-cluster': {'length_of_epidemic': 5.7314453125,
+                      'max_infections_at_a_time': 2.373046875,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 2.560546875,
+                      'time_of_max_infection': 1.2109375},
+ 'watts-strogatz': {'length_of_epidemic': 4.41015625,
+                    'max_infections_at_a_time': 2.12890625,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 2.13671875,
+                    'time_of_max_infection': 0.38671875}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.02, ss: max_deg, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 8.9541015625,
+                 'max_infections_at_a_time': 3.77734375,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 5.03125,
+                 'time_of_max_infection': 2.021484375},
+ 'powerlaw-cluster': {'length_of_epidemic': 12.6826171875,
+                      'max_infections_at_a_time': 3.4619140625,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 5.3544921875,
+                      'time_of_max_infection': 4.505859375},
+ 'watts-strogatz': {'length_of_epidemic': 8.875,
+                    'max_infections_at_a_time': 2.5771484375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 3.69921875,
+                    'time_of_max_infection': 1.7265625}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.02, ss: max_deg, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 10.166015625,
+                 'max_infections_at_a_time': 4.9873046875,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 6.2744140625,
+                 'time_of_max_infection': 4.3955078125},
+ 'powerlaw-cluster': {'length_of_epidemic': 18.2119140625,
+                      'max_infections_at_a_time': 5.19921875,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 9.0595703125,
+                      'time_of_max_infection': 9.5966796875},
+ 'watts-strogatz': {'length_of_epidemic': 5.423828125,
+                    'max_infections_at_a_time': 2.4765625,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 2.7294921875,
+                    'time_of_max_infection': 1.4130859375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.02, ss: min_deg, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 4.1640625,
+                 'max_infections_at_a_time': 2.0390625,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 2.0546875,
+                 'time_of_max_infection': 0.078125},
+ 'powerlaw-cluster': {'length_of_epidemic': 5.462890625,
+                      'max_infections_at_a_time': 2.341796875,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 2.5625,
+                      'time_of_max_infection': 0.857421875},
+ 'watts-strogatz': {'length_of_epidemic': 9.0732421875,
+                    'max_infections_at_a_time': 3.0458984375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 4.0458984375,
+                    'time_of_max_infection': 3.0693359375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.02, ss: min_deg, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 5.55859375,
+                 'max_infections_at_a_time': 2.5078125,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 2.5234375,
+                 'time_of_max_infection': 1.05078125},
+ 'powerlaw-cluster': {'length_of_epidemic': 4.2373046875,
+                      'max_infections_at_a_time': 2.0615234375,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 2.1064453125,
+                      'time_of_max_infection': 0.1328125},
+ 'watts-strogatz': {'length_of_epidemic': 4.111328125,
+                    'max_infections_at_a_time': 2.017578125,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 2.0390625,
+                    'time_of_max_infection': 0.099609375}}
+
+===============================================================================================================
+Average metrics for: p: 0.2, ss: rand, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 238.458984375,
+                 'max_infections_at_a_time': 67.2568359375,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 99.6875,
+                 'time_of_max_infection': 12.861328125},
+ 'powerlaw-cluster': {'length_of_epidemic': 226.630859375,
+                      'max_infections_at_a_time': 52.2822265625,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 16.1396484375},
+ 'watts-strogatz': {'length_of_epidemic': 236.8916015625,
+                    'max_infections_at_a_time': 60.0048828125,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 17.36328125}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.2, ss: rand, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 28.169921875,
+                 'max_infections_at_a_time': 62.0908203125,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 97.1494140625,
+                 'time_of_max_infection': 10.8974609375},
+ 'powerlaw-cluster': {'length_of_epidemic': 35.5244140625,
+                      'max_infections_at_a_time': 44.4580078125,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 90.171875,
+                      'time_of_max_infection': 12.1259765625},
+ 'watts-strogatz': {'length_of_epidemic': 33.9296875,
+                    'max_infections_at_a_time': 56.3427734375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 99.03125,
+                    'time_of_max_infection': 15.6845703125}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.2, ss: max_deg, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 197.1376953125,
+                 'max_infections_at_a_time': 68.3564453125,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 100.0,
+                 'time_of_max_infection': 12.0},
+ 'powerlaw-cluster': {'length_of_epidemic': 191.7890625,
+                      'max_infections_at_a_time': 57.9765625,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 12.5849609375},
+ 'watts-strogatz': {'length_of_epidemic': 183.0888671875,
+                    'max_infections_at_a_time': 63.4794921875,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 12.990234375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.2, ss: max_deg, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 25.7744140625,
+                 'max_infections_at_a_time': 60.310546875,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 96.3662109375,
+                 'time_of_max_infection': 11.7880859375},
+ 'powerlaw-cluster': {'length_of_epidemic': 33.1103515625,
+                      'max_infections_at_a_time': 44.9228515625,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 90.072265625,
+                      'time_of_max_infection': 10.703125},
+ 'watts-strogatz': {'length_of_epidemic': 36.3583984375,
+                    'max_infections_at_a_time': 43.3681640625,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 96.27734375,
+                    'time_of_max_infection': 17.77734375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.2, ss: min_deg, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 185.396484375,
+                 'max_infections_at_a_time': 67.6767578125,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 100.0,
+                 'time_of_max_infection': 17.2236328125},
+ 'powerlaw-cluster': {'length_of_epidemic': 184.0029296875,
+                      'max_infections_at_a_time': 54.1865234375,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 17.8818359375},
+ 'watts-strogatz': {'length_of_epidemic': 200.2451171875,
+                    'max_infections_at_a_time': 64.896484375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 13.9208984375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.2, ss: min_deg, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 15.6962890625,
+                 'max_infections_at_a_time': 26.4072265625,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 43.53515625,
+                 'time_of_max_infection': 6.71875},
+ 'powerlaw-cluster': {'length_of_epidemic': 34.505859375,
+                      'max_infections_at_a_time': 44.7119140625,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 87.369140625,
+                      'time_of_max_infection': 11.92578125},
+ 'watts-strogatz': {'length_of_epidemic': 32.0703125,
+                    'max_infections_at_a_time': 47.599609375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 97.5498046875,
+                    'time_of_max_infection': 17.3662109375}}
+
+==============================================================================================================
+Average metrics for: p: 0.8, ss: rand, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 263.2490234375,
+                 'max_infections_at_a_time': 90.2763671875,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 100.0,
+                 'time_of_max_infection': 5.29296875},
+ 'powerlaw-cluster': {'length_of_epidemic': 210.779296875,
+                      'max_infections_at_a_time': 83.5625,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 6.7490234375},
+ 'watts-strogatz': {'length_of_epidemic': 174.0009765625,
+                    'max_infections_at_a_time': 93.3564453125,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 7.302734375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.8, ss: rand, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 22.2998046875,
+                 'max_infections_at_a_time': 91.482421875,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 100.0,
+                 'time_of_max_infection': 6.056640625},
+ 'powerlaw-cluster': {'length_of_epidemic': 23.9755859375,
+                      'max_infections_at_a_time': 84.41796875,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 5.9345703125},
+ 'watts-strogatz': {'length_of_epidemic': 21.13671875,
+                    'max_infections_at_a_time': 94.05859375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 5.6220703125}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.8, ss: max_deg, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 204.0029296875,
+                 'max_infections_at_a_time': 92.33984375,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 100.0,
+                 'time_of_max_infection': 6.05859375},
+ 'powerlaw-cluster': {'length_of_epidemic': 202.5400390625,
+                      'max_infections_at_a_time': 86.439453125,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 9.087890625},
+ 'watts-strogatz': {'length_of_epidemic': 244.1806640625,
+                    'max_infections_at_a_time': 93.259765625,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 6.298828125}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.8, ss: max_deg, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 20.4443359375,
+                 'max_infections_at_a_time': 90.861328125,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 99.984375,
+                 'time_of_max_infection': 4.25},
+ 'powerlaw-cluster': {'length_of_epidemic': 22.080078125,
+                      'max_infections_at_a_time': 84.9892578125,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 5.2353515625},
+ 'watts-strogatz': {'length_of_epidemic': 21.11328125,
+                    'max_infections_at_a_time': 92.6005859375,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 5.6015625}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.8, ss: min_deg, r: 0.5
+{'erdos-renyi': {'length_of_epidemic': 245.623046875,
+                 'max_infections_at_a_time': 91.5693359375,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 100.0,
+                 'time_of_max_infection': 7.5849609375},
+ 'powerlaw-cluster': {'length_of_epidemic': 212.8974609375,
+                      'max_infections_at_a_time': 87.8828125,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 10.4853515625},
+ 'watts-strogatz': {'length_of_epidemic': 229.236328125,
+                    'max_infections_at_a_time': 89.830078125,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 8.83984375}}
+
+--------------------------------------------------------------------------------------------------------------
+Average metrics for: p: 0.8, ss: min_deg, r: 0.0
+{'erdos-renyi': {'length_of_epidemic': 22.0625,
+                 'max_infections_at_a_time': 85.8564453125,
+                 'num_edges': 358.0,
+                 'num_nodes': 100.0,
+                 'num_nodes_infected': 100.0,
+                 'time_of_max_infection': 6.8369140625},
+ 'powerlaw-cluster': {'length_of_epidemic': 24.2861328125,
+                      'max_infections_at_a_time': 85.2314453125,
+                      'num_edges': 290.0,
+                      'num_nodes': 100.0,
+                      'num_nodes_infected': 100.0,
+                      'time_of_max_infection': 8.0},
+ 'watts-strogatz': {'length_of_epidemic': 21.7978515625,
+                    'max_infections_at_a_time': 90.30078125,
+                    'num_edges': 300.0,
+                    'num_nodes': 100.0,
+                    'num_nodes_infected': 100.0,
+                    'time_of_max_infection': 7.0810546875}}
+
+Process finished with exit code 0
